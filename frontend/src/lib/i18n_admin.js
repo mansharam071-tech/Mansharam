@@ -54,7 +54,8 @@ export const HI_ADMIN = {
   "Job is not in progress": "काम जारी नहीं है", "Finish your current live job first": "पहले मौजूदा लाइव काम पूरा करें", "Already rated": "पहले ही रेटिंग दी जा चुकी है",
 };
 
-const MONTHS = { Jan: "जन॰", Feb: "फ़र॰", Mar: "मार्च", Apr: "अप्रैल", May: "मई", Jun: "जून", Jul: "जुल॰", Aug: "अग॰", Sep: "सित॰", Oct: "अक्तू॰", Nov: "नव॰", Dec: "दिस॰" };
+const SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = Object.fromEntries(SHORT.map((m, i) => [m, new Date(2024, i, 1).toLocaleDateString("hi-IN", { month: "short" })]));
 
 export const ADMIN_PATTERNS = [
   [/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/, (m, d, mo) => `${d} ${MONTHS[mo]}`],
@@ -65,5 +66,5 @@ export const ADMIN_PATTERNS = [
   [/^of (\d+) verified partners$/, "$1 सत्यापित पार्टनर में से"], [/^Booking (\S+)$/, "बुकिंग $1"], [/^Edit (.+)$/, "$1 बदलें"], [/^(.+) launched!$/, "$1 शुरू हुआ!"], [/^(.+) deleted$/, "$1 हटाया गया"],
   [/^(\d+) new pincodes added from CSV$/, "CSV से $1 नए पिनकोड जोड़े"], [/^(\d+)% off up to (₹[\d,.]+)$/, "$1% छूट, $2 तक"], [/^(\d+)% off$/, "$1% छूट"], [/^(₹[\d,.]+) off$/, "$1 छूट"],
   [/^· min (₹[\d,.]+)$/, "· न्यूनतम $1"], [/^· exp (.+)$/, "· समाप्ति $1"], [/^Coupon (\S+) created$/, "कूपन $1 बना"], [/^(\d+) settlement\(s\) generated$/, "$1 सेटलमेंट बने"],
-  [/^Released (₹[\d,.]+) to (.+)$/, "$2 को $1 जारी"], [/^(.+) (approve|reject|resubmit)d$/, (m, a, b) => `${a} ${{ approve: "स्वीकृत", reject: "अस्वीकृत", resubmit: "फिर से माँगा" }[b]}`],
+  [/^Released (₹[\d,.]+) to (.+)$/, "$2 को $1 जारी"], [/^GSTIN \[placeholder\] · Billed to$/, "GSTIN [placeholder] · बिल प्राप्तकर्ता"], [/^(.+) (approve|reject|resubmit)d$/, (m, a, b) => `${a} ${{ approve: "स्वीकृत", reject: "अस्वीकृत", resubmit: "फिर से माँगा" }[b]}`],
 ];

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { aapi, errMsg, inr } from "@/lib/api";
+import { aapi, errMsg, inr, fmtDate } from "@/lib/api";
 
 const TRIG = { weather: { icon: CloudRain, label: "Weather" }, peak_hours: { icon: Clock, label: "Peak hours" }, high_demand: { icon: Flame, label: "High demand zone" } };
 const Sel = ({ value, onChange, children, testid }) => (
@@ -117,7 +117,7 @@ export default function APricing() {
                   <td>{c.discount_type === "percent" ? `${c.value}% off${c.max_discount ? ` up to ${inr(c.max_discount)}` : ""}` : `${inr(c.value)} off`}{c.min_order ? ` · min ${inr(c.min_order)}` : ""}{c.first_order_only ? " · 1st order" : ""}</td>
                   <td className="text-xs text-slate-500">{c.city_ids.length ? c.city_ids.map(cityName).join(", ") : "All cities"} · {c.category_ids.length ? c.category_ids.map((id) => cats.find((x) => x.id === id)?.name).join(", ") : "All categories"}</td>
                   <td>{c.used_count}/{c.usage_limit || "∞"}</td>
-                  <td className="text-xs">{c.valid_till || "-"}</td>
+                  <td className="text-xs">{c.valid_till ? fmtDate(c.valid_till) : "-"}</td>
                   <td><Switch data-testid={`coupon-toggle-${c.code}`} checked={c.is_active} onCheckedChange={(v) => toggleCoupon(c, v)} /></td>
                   <td><button data-testid={`coupon-delete-${c.code}`} onClick={async () => { await aapi.delete(`/admin/coupons/${c.id}`); load(); }}><Trash2 className="h-4 w-4 text-slate-400" /></button></td>
                 </tr>

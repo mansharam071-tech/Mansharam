@@ -119,13 +119,20 @@ const translate = (s) => {
 const done = new Map();
 const ph = new Map();
 const walk = (root) => {
-  const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  if (root.nodeType === 1 && root.closest("[translate='no']")) return;
+  const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (x) => (x.nodeType === 1 && x.getAttribute("translate") === "no" ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+  });
   let n = root;
+  if (n.nodeType === 3 && n.parentElement?.closest("[translate='no']")) return;
   while (n) {
     if (n.nodeType === 3) {
       const v = translate(n.nodeValue);
       if (v !== null && v !== n.nodeValue) {
-        if (done.size > 3000) done.forEach((_, node) => { if (!node.isConnected) done.delete(node); });
+        if (done.size > 3000) {
+          done.forEach((_, node) => { if (!node.isConnected) done.delete(node); });
+          ph.forEach((_, el) => { if (!el.isConnected) ph.delete(el); });
+        }
         done.set(n, [n.nodeValue, v]);
         n.nodeValue = v;
       }

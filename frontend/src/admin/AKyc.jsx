@@ -3,7 +3,7 @@ import { FileImage } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { aapi, errMsg, fmtDT } from "@/lib/api";
+import { aapi, errMsg, fmtDT, fmtDate } from "@/lib/api";
 import { Empty } from "@/components/common/Shared";
 
 const DOCS = { aadhaar: "Aadhaar", pan: "PAN", dl: "Driving Licence", police: "Police Verification" };
@@ -20,7 +20,7 @@ const DocRow = ({ p, type, doc, reload }) => {
     <div className="flex items-center gap-3 rounded-xl border p-3" data-testid={`kyc-row-${p.id}-${type}`}>
       <div className="w-44">
         <p className="text-sm font-semibold">{DOCS[type]}</p>
-        <p className="font-mono text-xs text-slate-500">{doc.number || "—"}{doc.expiry_date ? ` · exp ${doc.expiry_date}` : ""}</p>
+        <p className="font-mono text-xs text-slate-500">{doc.number || "—"}{doc.expiry_date ? ` · exp ${fmtDate(doc.expiry_date)}` : ""}</p>
       </div>
       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${CLS[doc.status]}`}>{doc.status}</span>
       <button data-testid={`kyc-view-${p.id}-${type}`} onClick={view} className="flex items-center gap-1 text-xs font-semibold text-[#1E3A8A]"><FileImage className="h-4 w-4" />View</button>

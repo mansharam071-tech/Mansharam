@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { aapi, errMsg, fmtDT, inr } from "@/lib/api";
+import { aapi, errMsg, fmtDT, fmtDate, inr } from "@/lib/api";
 import { InvoiceDialog } from "@/components/common/BookingTools";
 
 const Commission = ({ cats }) => {
@@ -38,7 +38,7 @@ const CommInvoice = ({ s, onClose }) => (
       {s && (
         <div className="space-y-1.5 text-sm" id="invoice-print">
           <div className="flex justify-between"><b>HomeServe Technologies Pvt. Ltd.</b><span className="font-mono text-xs">{s.gst_invoice_no}</span></div>
-          <p className="text-xs text-slate-500">GSTIN [placeholder] · Billed to {s.partner_name} · {s.period_start} → {s.period_end}</p>
+          <p className="text-xs text-slate-500">GSTIN [placeholder] · Billed to {s.partner_name} · {fmtDate(s.period_start)} → {fmtDate(s.period_end)}</p>
           {[["Jobs", s.jobs], ["Gross job value", inr(s.gross)], ["Platform commission", inr(s.commission)], ["GST on commission (18%)", inr(s.commission_gst)], ["Partner earnings", inr(s.earnings)], ["Tips", inr(s.tips)], ["Penalties", `- ${inr(s.penalties)}`]].map(([k, v]) => <div key={k} className="flex justify-between border-b py-1"><span>{k}</span><span>{v}</span></div>)}
           <div className="flex justify-between pt-1 text-base font-bold"><span>Net payable to partner</span><span>{inr(s.net_payable)}</span></div>
           <Button onClick={() => window.print()} className="mt-2 w-full bg-[#1E3A8A]">Download / Print</Button>
@@ -69,7 +69,7 @@ export default function AFinance() {
             {stl.length === 0 && <p className="text-sm text-slate-400">No settlements yet — click generate.</p>}
             {stl.map((s) => (
               <div key={s.id} className="flex items-center gap-3 rounded-xl border p-3 text-sm" data-testid={`settlement-${s.id}`}>
-                <div className="flex-1"><p className="font-semibold">{s.partner_name} <span className="text-xs font-normal text-slate-400">· {s.jobs} jobs · {s.period_start}→{s.period_end}</span></p>
+                <div className="flex-1"><p className="font-semibold">{s.partner_name} <span className="text-xs font-normal text-slate-400">· {s.jobs} jobs · {fmtDate(s.period_start)}→{fmtDate(s.period_end)}</span></p>
                   <p className="text-xs text-slate-500">Commission {inr(s.commission)} · penalties {inr(s.penalties)} · tips {inr(s.tips)}</p></div>
                 <span className="font-bold">{inr(s.net_payable)}</span>
                 <button data-testid={`settlement-invoice-${s.id}`} onClick={() => setView(s)} className="text-xs font-semibold text-[#1E3A8A]">GST inv.</button>

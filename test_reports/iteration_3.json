@@ -1,0 +1,35 @@
+{
+  "summary": "Frontend-only test of calendar/date localisation (partner + customer), admin Hindi mode, and the wallet reset. Everything requested works: partner calendar month title in Hindi ('अक्टूबर 2026', prev/next gives 'सितंबर'/'नवंबर 2026'), weekday headers सो मं बु गु शु श र, off-day chips सोम…रवि with 'रवि · छुट्टी', job list dates '18 अक्टू॰ 2026', calendar day details in Hindi. English mode shows 'October 2026' and M T W T F S S. Earnings chart: daily सोम…रवि, weekly '05 अक्तू॰'. Customer in Hindi: checkout chips रवि/सोम/मंगल/बुध/गुरु, bookings 'बुक किया 18 अक्टू॰, 12:54 pm', wallet transaction time in Hindi. Admin toggle switches the whole panel to Hindi and back with no reload (no frame navigation): sidebar, title, KPIs, chart legend and axis labels, alerts, tabs and table headers, reassign dialog, cities, pricing, KYC, partners, finance. The setting survives reload and a fresh login. Hindi-mode actions work: reassign dialog opens with translated candidates, coupon created (toast 'कूपन TESTHI10 बना'), settlement generated ('1 सेटलमेंट बने'), commission invoice dialog opens. Wallet reset confirmed: GET /api/customer/wallet returned {balance:250, transactions:[]}. No page errors or console errors in any app. Found 1 medium issue (logo text gets translated) and a few low ones (gaps and inconsistencies).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Admin sidebar brand logo (AdminApp.jsx line 126: Home<span>Serve</span>)", "issue": "The 'Home' text node matches HI.Home, so the brand shows as 'होमServe' in Hindi mode. The same Home<span>Serve</span> pattern in the customer/partner apps is probably affected too.", "selector": "[data-testid=admin-sidebar] p.font-heading", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard / Partner earnings", "issues": ["Month abbreviations differ on the same screen. The i18n_admin MONTHS map gives 'अक्तू॰' (chart axis) but Intl hi-IN fmtDT gives 'अक्टू॰' (alert timestamps). Use one spelling, e.g. build the MONTHS map from Intl hi-IN { month: 'short' }."]},
+      {"screen": "Dates not localised (raw ISO)", "issues": ["Admin coupons 'Valid till' column (2027-12-31)", "Finance settlement period '2026-10-18→2026-10-18' and the commission invoice 'Billed to … 2026-10-18 → 2026-10-18'", "KYC queue 'समाप्ति 2027-11-22'", "Partner home DL expiry banner '(2026-11-07)'"]},
+      {"screen": "Untranslated fragments in Hindi mode", "issues": ["Admin alert details keep English service names ('पार्टनर Ramesh Kumar · Refrigerator Repair'). The Partner pattern does not run HI lookups on the inner parts.", "Surge rule card 'Lucknow · Rain' and 'सभी शहर · 18:00–21:00 IST'", "Commission invoice text 'Billed to'", "Checkout time slots '09:00 AM' and fmtDT 'am/pm' stay in Latin script (Chrome hi-IN output; acceptable but could use पूर्वाह्न/अपराह्न)"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/cleanup_iter3.py"],
+  "action_items": [
+    "Stop the brand 'HomeServe' from being translated. Render it as one text node or make walk() skip elements marked translate='no' or data-no-i18n.",
+    "Use one Hindi month abbreviation everywhere: the ADMIN_PATTERNS MONTHS map vs Intl hi-IN ('अक्तू॰' vs 'अक्टू॰').",
+    "Format the remaining raw ISO dates with fmtDate: coupon valid_till, settlement period_start/period_end, KYC expiry_date, partner DL expiry banner.",
+    "Optional: translate service names inside admin alert details, the weather name in surge rules, and 'Billed to' on the commission invoice."
+  ],
+  "critical_code_review_comments": [
+    "i18n.js useHindi sets the module-level `current` locale during render. It works here because AdminApp, CustomerApp and PartnerApp are the root render for each route. It would break if two apps ever rendered together, or if a memoised child formatted dates before the parent re-rendered.",
+    "The translation walker matches text nodes exactly against a global dictionary, so any short English word that happens to be in HI (Home, Add, Code, Value…) gets translated even when it is part of a brand or proper noun. Add an opt-out attribute.",
+    "The `done` Map only prunes disconnected nodes after it passes 3000 entries, and `ph` is never pruned while Hindi mode is on. This could leak memory on long admin sessions with polling tables."
+  ],
+  "updated_files": ["/app/backend/tests/cleanup_iter3.py (new cleanup helper only; no app code changed)"],
+  "success_rate": {"backend": "N/A (skipped as requested; wallet API spot-checked OK)", "frontend": "95%"},
+  "seed_data_creation": "Created coupon TESTHI10 (deleted afterwards), one ₹100 demo wallet top-up (reverted) and one weekly settlement for Ramesh Kumar via 'Generate this week'. The settlement was generated from a real completed booking and was left in place.",
+  "test_credentials": "Taken from /app/memory/test_credentials.md: admin admin@homeserve.in/Admin@123, customer 9999999999/1234, partner 9000000001/1234. All worked.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Cleanup already done via /app/backend/tests/cleanup_iter3.py: language=en for admin, 9999999999 and 9000000001; partner offline; usr_demo_customer wallet_balance=250 with wallet_txns deleted; TESTHI10 coupon deleted. Chromium's hi-IN ICU writes October as 'अक्टूबर' (not 'अक्तूबर'); that is expected. Admin nav testids: admin-nav-dashboard/live/geofencing/surge/kyc/partners/financials.",
+  "rca of the issue": "Brand logo: walk() translates every text node whose trimmed value is a key in HI. 'Home' is a key (customer nav) and the logo is split into the text node 'Home' plus <span>Serve</span>, so the first half gets replaced. Month mismatch: i18n_admin.js hardcodes MONTHS.Oct='अक्तू॰' while V8/ICU hi-IN short month is 'अक्टू॰'."
+}

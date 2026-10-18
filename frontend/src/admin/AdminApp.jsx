@@ -123,7 +123,7 @@ export default function AdminApp() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <aside className="fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col bg-[#0F172A] text-slate-300" data-testid="admin-sidebar">
         <div className="px-6 py-6">
-          <p className="font-heading text-2xl font-extrabold text-white">Home<span className="text-[#F59E0B]">Serve</span></p>
+          <p translate="no" className="font-heading text-2xl font-extrabold text-white">Home<span className="text-[#F59E0B]">Serve</span></p>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Operations console</p>
         </div>
         <nav className="flex-1 space-y-1 px-3">

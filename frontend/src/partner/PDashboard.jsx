@@ -90,7 +90,7 @@ export default function PDashboard() {
       )}
       {d.doc_alerts.map((a) => (
         <div key={a.type} data-testid={`doc-expiry-alert-${a.type}`} className={`flex items-center gap-3 rounded-2xl p-4 text-sm font-semibold ${a.level === "danger" ? "bg-red-50 text-[#EF4444]" : "bg-yellow-50 text-yellow-800"}`}>
-          <AlertTriangle className="h-5 w-5" /> {a.type === "dl" ? "Driving Licence" : "Police Verification"} expires in {a.days_left} days ({a.expiry_date}). Renew & re-upload.
+          <AlertTriangle className="h-5 w-5" /> {a.type === "dl" ? "Driving Licence" : "Police Verification"} expires in {a.days_left} days ({fmtDate(a.expiry_date)}). Renew & re-upload.
         </div>
       ))}
       <div className={`rounded-2xl border-2 bg-white p-4 ${d.cod.blocked ? "border-[#EF4444]" : "border-transparent"}`} data-testid="partner-cod-card">

@@ -3,7 +3,7 @@ import { Upload, CheckCircle2, Clock, XCircle, RotateCcw, LogOut } from "lucide-
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { papi, capi, errMsg, fileToDataUrl, session } from "@/lib/api";
+import { papi, capi, errMsg, fileToDataUrl, session, fmtDate } from "@/lib/api";
 import { usePartner } from "./PartnerApp";
 
 const DOCS = [
@@ -38,7 +38,7 @@ const DocCard = ({ d, doc, onSaved }) => {
         {st ? <span className={`flex items-center gap-1 text-xs font-bold ${st.cls}`}><st.icon className="h-4 w-4" />{st.label}</span> : <span className="text-xs font-bold text-slate-400">Not uploaded</span>}
       </div>
       {doc?.note && <p className="mt-1 text-xs text-[#EF4444]">Admin note: {doc.note}</p>}
-      {expiring && <p data-testid={`kyc-${d.type}-expiring`} className="mt-1 text-xs font-semibold text-[#EAB308]">Expires {doc.expiry_date} — upload the renewed document</p>}
+      {expiring && <p data-testid={`kyc-${d.type}-expiring`} className="mt-1 text-xs font-semibold text-[#EAB308]">Expires {fmtDate(doc.expiry_date)} — upload the renewed document</p>}
       {editable && (
         <div className="mt-3 space-y-2">
           <Input data-testid={`kyc-${d.type}-number`} placeholder="Document number" value={f.number} onChange={(e) => setF({ ...f, number: e.target.value })} />
@@ -50,7 +50,7 @@ const DocCard = ({ d, doc, onSaved }) => {
           <Button data-testid={`kyc-${d.type}-submit`} disabled={!f.number || (d.expiry && !f.expiry_date)} onClick={submit} className="h-11 w-full bg-[#0F172A] font-bold">Submit</Button>
         </div>
       )}
-      {doc?.status === "approved" && <p className="mt-1 text-xs text-slate-500">{doc.number}{doc.expiry_date ? ` · valid till ${doc.expiry_date}` : ""}</p>}
+      {doc?.status === "approved" && <p className="mt-1 text-xs text-slate-500">{doc.number}{doc.expiry_date ? ` · valid till ${fmtDate(doc.expiry_date)}` : ""}</p>}
     </div>
   );
 };

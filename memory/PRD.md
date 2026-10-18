@@ -13,6 +13,12 @@ User choices: all 3 modules on web (customer & partner as mobile-style phone-fra
 ## User personas
 Customer (books home services), Partner/technician (executes jobs), Ops admin (manages cities, pricing, partners, finance).
 
+## Implemented (2026-10-18) — iteration 3
+- Hindi admin panel (frontend/src/lib/i18n_admin.js + toggle in the admin profile menu; saved on the admin user).
+- Dates and calendars follow the active locale: getLocale() → hi-IN / en-IN, used by fmtDT/fmtDate, checkout date chips, partner calendar month title and weekday headers, and chart axis labels. Brand text is opted out with translate="no".
+- Demo customer wallet reset to ₹250 with no transactions.
+- Testing iteration_3: frontend ~95%, all requested flows pass; review fixes applied afterwards.
+
 ## Implemented (2026-10-18) — iteration 2
 - Razorpay Standard Checkout (backend/routes_payments.py + frontend/src/lib/razorpay.js): UPI/Card bookings, wallet top-up and post-job balance for approved extras. Server-side order creation, HMAC signature verification, idempotent fulfilment, cancel on dismiss/failure, optional webhook (RAZORPAY_WEBHOOK_SECRET), refund to wallet if a payment lands after cancellation. Bookings stay `payment_pending` until verified, and only then can they be dispatched.
 - Keys are read from RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in backend/.env. They are currently EMPTY, so the app automatically falls back to demo payments and checkout shows a "Demo payment mode" note.
