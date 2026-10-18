@@ -97,7 +97,7 @@ export default function CCheckout() {
       ) : (
         <div className="space-y-4 p-4 pb-6">
           <section className="rounded-2xl border bg-white p-4">
-            <h3 className="text-sm font-bold">Your services · {cart.lines.length} item{cart.lines.length > 1 ? "s" : ""} (mix any categories)</h3>
+            <h3 className="text-sm font-bold">Your services · {cart.lines.length} {cart.lines.length > 1 ? "items" : "item"} (mix any categories)</h3>
             {cart.lines.map((l) => (
               <div key={l.service_id} className="mt-3 flex items-center gap-3" data-testid={`cart-line-${l.service_id}`}>
                 <img src={l.image} alt="" className="h-11 w-11 rounded-lg object-cover" />
@@ -165,7 +165,7 @@ export default function CCheckout() {
             <h3 className="flex items-center gap-1.5 text-sm font-bold"><Tag className="h-4 w-4 text-[#F59E0B]" /> Coupons & offers</h3>
             <div className="mt-2 flex gap-2">
               <Input data-testid="checkout-coupon-input" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Enter code" />
-              <button data-testid="checkout-apply-coupon-btn" onClick={() => setApplied(coupon)} className="rounded-lg bg-[#1E3A8A] px-4 text-sm font-bold text-white">Apply</button>
+              <button data-testid="checkout-apply-coupon-btn" onClick={() => setApplied(coupon)} className="shrink-0 whitespace-nowrap rounded-lg bg-[#1E3A8A] px-4 text-sm font-bold text-white">Apply</button>
             </div>
             {p.coupon_code && <p data-testid="checkout-coupon-applied" className="mt-2 text-xs font-semibold text-[#22C55E]">{p.coupon_code} applied · you save {inr(p.discount)} <button className="ml-2 text-[#EF4444]" onClick={() => { setApplied(""); setCoupon(""); }}>Remove</button></p>}
             <div className="mt-2 flex flex-wrap gap-1.5">

@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 2: tested the Razorpay demo fallback (keys empty), the new payment endpoints, Hindi translation for the customer and partner apps, and a full E2E job-flow regression with Hindi ON. Backend: 59/59 pytest pass (15 new payment/language tests + 44 regression). Frontend: Hindi switching works with no reload in both apps (nav, home greeting, categories, banners, trending, service detail, checkout, tracking, bookings badges, wallet, support, partner dashboard/earnings/schedule/KYC, incoming-job modal, extra-approval dialog, invoice labels). Switching back to English restores English without a reload. Checkout demo note is shown for UPI/Card and hidden for COD. Demo UPI booking and wallet top-up of 100 both work. E2E flow (COD booking -> partner online -> modal -> accept -> navigate -> arrive -> start OTP -> extra -> customer approves -> end OTP -> GST invoice) passed with no React crashes or console errors. Admin stays English. Only minor translation gaps found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/customer/bookings/{id}/cancel", "issue": "A booking in status 'payment_pending' (Razorpay order created, checkout abandoned without the ondismiss callback, e.g. tab closed) cannot be cancelled by the customer, because 'payment_pending' is not in CANCEL_FEES. Nothing expires stale payment_pending bookings. These would pile up once real keys are set."},
+      {"endpoint": "fulfil() via /payments/verify or webhook", "issue": "If /payments/cancel already marked the order 'failed' (modal dismissed) but Razorpay later captures the payment (webhook), fulfil finds no 'created' row and does nothing. The money is captured but the booking stays cancelled with no refund. Consider handling a late capture on failed orders (re-open the booking or auto-refund)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CProfile language select", "issue": "Race condition: the mount effect capi.get('/auth/me').then(setP) overwrites local state. If the user changes the language before /auth/me resolves, the old language is saved. Reproduced once in automation: the PUT was sent with language 'hi' after selecting 'en'. Works when the page has loaded.", "selector": "[data-testid=profile-language-select]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Hindi mode - untranslated strings", "issues": [
+        "Service names stay English when combined with quantity in one text node: bookings list 'Room Painting (1 BHK wall) ×1', incoming-job modal 'Fan / Light Installation & Repair x1', partner job header, invoice line 'Fan / Light Installation & Repair × 1'",
+        "'Surge 1.3x' on tracking and invoice (the PATTERN exists but the text is split across nodes), 'CGST 9%' / 'SGST 9%', 'Extra: <name>', '60 min' on service detail, 'jobs · Verified' on the tracking partner card, 'Collect cash ₹x' on the partner job, 'valid till' on partner KYC docs, calendar month and weekday headers (October 2026, M T W) on the partner schedule"
+      ]},
+      {"screen": "Partner bottom nav (Hindi)", "issues": ["'केवाईसी और प्रोफ़ाइल' label is clipped at the right edge of the phone frame"]},
+      {"screen": "Checkout (Hindi)", "issues": ["Apply button 'लागू करें' wraps onto 2 lines. Add whitespace-nowrap or a min-width."]},
+      {"screen": "Profile language options", "issues": ["Tamil and Bengali are offered but have no translations, so choosing them silently shows English"]},
+      {"screen": "Checkout toast", "issues": ["The 'Processing demo payment…' toast stays visible together with 'Booking confirmed' after the booking succeeds. Dismiss it on success."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_payments_razorpay.py", "/app/backend/tests/test_homeserve_api.py", "/app/backend/tests/test_homeserve_extra.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "(Low) Fix the CProfile /auth/me race: don't overwrite a field the user has already edited, or disable the select until loaded",
+    "(Low) Translate the composite service-line strings (name + ×qty) by rendering the name in its own element/text node. Also fix Surge/CGST/SGST/Extra/min/'jobs · Verified'/'Collect cash'/'valid till'/calendar headers",
+    "(Low) Partner nav label clipping in Hindi. Checkout Apply button wrap",
+    "(Medium, needed before real keys go live) Handle stale payment_pending bookings (allow cancel or expire them) and a late webhook capture on orders already marked failed"
+  ],
+  "critical_code_review_comments": [
+    "i18n.js: the 'done' Map keeps references to every translated text node until the language is toggled off. This leaks detached nodes over a long session. A WeakMap plus a list of WeakRefs (or clearing entries for removed nodes) would avoid it.",
+    "i18n.js: the dictionary key `s: \"\"` blanks any standalone text node equal to 's'. It is fragile; prefer proper pluralisation in the JSX.",
+    "i18n.js: placeholder changes after the first render are not re-translated, because 'attributes' is not observed",
+    "routes_payments.verify: checks ownership and 404 before client(), which is good. Signature failures mark the payment signature_failed and the booking stays payment_pending forever (same stale-booking concern as above)."
+  ],
+  "updated_files": ["/app/backend/tests/test_payments_razorpay.py"],
+  "success_rate": {"backend": "100% (59/59)", "frontend": "95% (all requested flows pass; only minor translation gaps and one load-race)"},
+  "test_credentials": "From /app/memory/test_credentials.md: customer 9999999999/1234, partner 9000000001/1234, admin admin@homeserve.in/Admin@123. All worked.",
+  "seed_data_creation": "Created and cancelled demo UPI/Card painting bookings (refunded to the wallet). Wallet top-ups of 100 were credited to the demo customer. One COD electrician booking HS535894 was completed with the extra TEST_capacitor, so the partner COD cash is now ₹464.57. Final state: customer language=en, partner language=en and offline.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest with `-n 0` (pytest.ini adds xdist). The full suite takes more than 120s, so run it in the background or per file. Razorpay keys are empty, so all online payments go through the demo path. In Playwright, wait about 2s on /app/profile before changing the language select (the /auth/me race). Pending leftovers: HS109055 and HS539961 (painting), HS575951 (salon). None of these match partner 9000000001's skills.",
+  "rca of the issue": "Language revert failure seen in the first attempt: CProfile mounts with useState(user) and fires GET /auth/me, whose .then(setP) replaces the whole state object. A select change made before it resolves is lost, so Save sends the stale language. Mitigation: merge only untouched fields, or gate the form on a loaded flag."
+}

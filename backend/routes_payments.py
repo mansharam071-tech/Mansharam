@@ -49,7 +49,7 @@ async def create_order(user, amount, purpose, booking_id=None, receipt=""):
 
 
 async def fulfil(order_id, payment_id):
-    pay = await db.payments.find_one_and_update({"order_id": order_id, "status": "created"},
+    pay = await db.payments.find_one_and_update({"order_id": order_id, "status": {"$in": ["created", "failed", "signature_failed"]}},
                                                 {"$set": {"status": "paid", "payment_id": payment_id, "paid_at": iso()}},
                                                 projection=NOID)
     if not pay:
@@ -58,6 +58,9 @@ async def fulfil(order_id, payment_id):
         await wallet_txn(pay["user_id"], pay["amount"], "Wallet top-up (Razorpay)")
     elif pay["purpose"] == "booking":
         b = await db.bookings.find_one({"id": pay["booking_id"]}, NOID)
+        if b["status"] != "payment_pending":
+            await wallet_txn(pay["user_id"], pay["amount"], f"Refund: payment received after cancelling {b['booking_no']}", b["id"])
+            return {**pay, "status": "paid"}
         await push_timeline(b["id"], "pending", {"status": "pending", "payment_status": "paid", "amount_paid": b["pricing"]["total"],
                                                  "razorpay_payment_id": payment_id})
         if b["pricing"].get("coupon_code"):

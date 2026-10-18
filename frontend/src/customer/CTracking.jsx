@@ -171,7 +171,7 @@ export default function CTracking() {
         {b.status === "completed" && !b.rating && <RateCard b={b} onDone={load} />}
         {b.rating && <p className="text-center text-sm text-slate-500">You rated {b.rating}★{b.tip ? ` · tipped ${inr(b.tip)}` : ""}</p>}
         {b.status === "cancelled" && <p data-testid="tracking-cancel-info" className="rounded-xl bg-red-50 p-3 text-sm text-[#EF4444]">Cancelled · fee {inr(b.cancellation?.fee)} · refunded {inr(b.cancellation?.refund)} to wallet</p>}
-        {["pending", "assigned", "en_route"].includes(b.status) && (
+        {["payment_pending", "pending", "assigned", "en_route"].includes(b.status) && (
           <button data-testid="tracking-cancel-btn" onClick={cancel} className="w-full py-2 text-sm font-semibold text-[#EF4444]">Cancel booking</button>
         )}
       </div>

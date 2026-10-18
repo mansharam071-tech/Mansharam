@@ -13,6 +13,12 @@ User choices: all 3 modules on web (customer & partner as mobile-style phone-fra
 ## User personas
 Customer (books home services), Partner/technician (executes jobs), Ops admin (manages cities, pricing, partners, finance).
 
+## Implemented (2026-10-18) — iteration 2
+- Razorpay Standard Checkout (backend/routes_payments.py + frontend/src/lib/razorpay.js): UPI/Card bookings, wallet top-up and post-job balance for approved extras. Server-side order creation, HMAC signature verification, idempotent fulfilment, cancel on dismiss/failure, optional webhook (RAZORPAY_WEBHOOK_SECRET), refund to wallet if a payment lands after cancellation. Bookings stay `payment_pending` until verified, and only then can they be dispatched.
+- Keys are read from RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in backend/.env. They are currently EMPTY, so the app automatically falls back to demo payments and checkout shows a "Demo payment mode" note.
+- Hindi interface (frontend/src/lib/i18n.js): a dictionary plus patterns, applied through a MutationObserver when user.language === "hi". Covers the customer and partner apps (partner language selector added in KYC & Profile). Noto Sans Devanagari font added. Admin stays English.
+- Testing iteration_2: backend 59/59, frontend ~95%; post-test fixes applied (cancel stale payment_pending bookings, late-capture refund, more Hindi strings, nav/Apply wrapping).
+
 ## Implemented (2026-10-18)
 - All modules and flows above working end-to-end (testing agent iteration_1: backend 44/44, frontend ~95%).
 - Post-test fixes: brute-force lockout keyed on email, decline validates offer, prepaid extras balance collected (wallet debit), coupon usage restored on cancel, settlement period from earliest job, candidates exclude nameless partners, expiring approved DL/Police can be re-uploaded, city delete clears selection, bookings search stale-response guard, location sheet inside phone frame, negative ₹ formatting.

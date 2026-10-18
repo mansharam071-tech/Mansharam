@@ -5,7 +5,7 @@ from core import db, NOID, now, iso, new_id, r2, haversine_km, IST
 GST_RATE = 0.18
 OFFER_SECONDS = 15
 TRAVEL_SECONDS = 180
-CANCEL_FEES = {"pending": 0, "assigned": 49, "en_route": 99}
+CANCEL_FEES = {"payment_pending": 0, "pending": 0, "assigned": 49, "en_route": 99}
 ACTIVE_STATUSES = ["assigned", "en_route", "in_progress"]
 CANCELLATION_POLICY = [
     "Free cancellation while we are finding a partner (Pending).",

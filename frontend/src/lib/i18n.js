@@ -14,7 +14,7 @@ const HI = {
   "What's included": "क्या शामिल है", "Not included": "शामिल नहीं", "Add-ons": "ऐड-ऑन", Quantity: "मात्रा", "Customer reviews": "ग्राहक समीक्षाएँ", reviews: "समीक्षाएँ",
   "On time, neat and professional.": "समय पर, साफ़-सुथरा और पेशेवर।", "Good work, fair pricing.": "अच्छा काम, उचित दाम।", "Add to cart": "कार्ट में जोड़ें", "Proceed to Checkout": "चेकआउट करें",
   "Loading…": "लोड हो रहा है…", "× item": "× आइटम", "+ add-ons": "+ ऐड-ऑन", Checkout: "चेकआउट", "Your cart is empty": "आपका कार्ट खाली है", "Browse services": "सेवाएँ देखें",
-  "Your services ·": "आपकी सेवाएँ ·", item: "आइटम", s: "", "(mix any categories)": "(कोई भी कैटेगरी मिलाएँ)", "Service address": "सेवा का पता", "+ New": "+ नया",
+  "Your services ·": "आपकी सेवाएँ ·", item: "आइटम", items: "आइटम", "(mix any categories)": "(कोई भी कैटेगरी मिलाएँ)", "Service address": "सेवा का पता", "+ New": "+ नया",
   "We don't serve this pincode yet. Pick another address.": "हम अभी इस पिनकोड पर सेवा नहीं देते। दूसरा पता चुनें।", "When should we come?": "हम कब आएँ?", Instant: "तुरंत",
   "Arrives in 30-45 min": "30-45 मिनट में पहुँचेंगे", "Pick date & slot": "तारीख और समय चुनें", "Coupons & offers": "कूपन और ऑफ़र", "Enter code": "कोड डालें", Apply: "लागू करें",
   "applied · you save": "लागू · आपकी बचत", Remove: "हटाएँ", "Payment method": "भुगतान का तरीका", "UPI (GPay / PhonePe)": "UPI (GPay / PhonePe)", "Credit / Debit Card": "क्रेडिट / डेबिट कार्ड",
@@ -82,7 +82,8 @@ const HI = {
   "Room Painting (1 BHK wall)": "कमरे की पेंटिंग (1 BHK दीवार)", "Cockroach & Ant Control": "कॉकरोच और चींटी नियंत्रण", "Washing Machine Repair": "वॉशिंग मशीन रिपेयर", "Refrigerator Repair": "फ़्रिज रिपेयर",
   "Gas Refill (R32/R22)": "गैस रिफ़िल (R32/R22)", "Anti-rust Coil Coating": "एंटी-रस्ट कॉइल कोटिंग", "30-day service warranty": "30 दिन की सर्विस वारंटी", "Spare parts cost": "स्पेयर पार्ट्स की कीमत",
   "Jet-pump filter & coil cleaning": "जेट-पंप से फ़िल्टर और कॉइल सफ़ाई", "Cooling & gas pressure check": "कूलिंग और गैस प्रेशर जाँच", "Drain pipe flush": "ड्रेन पाइप फ़्लश",
-  "Gas refill (available as add-on)": "गैस रिफ़िल (ऐड-ऑन में उपलब्ध)", "Wall/stand mounting": "दीवार/स्टैंड माउंटिंग", "Eco-safe chemicals": "इको-सेफ़ केमिकल", "Fault diagnosis": "खराबी की जाँच",
+  "Gas refill (available as add-on)": "गैस रिफ़िल (ऐड-ऑन में उपलब्ध)", min: "मिनट", "Raise ticket": "टिकट बनाएँ", "CGST 9%": "सीजीएसटी 9%", "SGST 9%": "एसजीएसटी 9%",
+  "Extra:": "अतिरिक्त:", "jobs · Verified": "काम · सत्यापित", Surge: "सर्ज", "Payment failed": "भुगतान विफल", "Wall/stand mounting": "दीवार/स्टैंड माउंटिंग", "Eco-safe chemicals": "इको-सेफ़ केमिकल", "Fault diagnosis": "खराबी की जाँच",
   "Leak detection": "लीकेज की पहचान", "Drain unclogging": "ड्रेन खोलना", "90-day warranty": "90 दिन की वारंटी", "Minor repairs": "छोटी मरम्मत", "Diagnosis & visit": "जाँच और विज़िट",
 };
 
@@ -92,6 +93,9 @@ const PATTERNS = [
   [/^Refund for cancelled booking (\S+)$/, "रद्द बुकिंग $1 का रिफ़ंड"], [/^5% cashback on (\S+)$/, "$1 पर 5% कैशबैक"], [/^Cancellation fee (\S+)$/, "रद्दीकरण शुल्क $1"],
   [/^Approved extras for (\S+)$/, "$1 के स्वीकृत अतिरिक्त"], [/^Surge ([\d.]+)x(.*)$/, "सर्ज $1x$2"], [/^(₹[\d,.]+) added( \(demo UPI\))?$/, "$1 जोड़े गए"],
   [/^Ticket (\S+) created$/, "टिकट $1 बना"], [/^(.+) submitted for verification$/, "$1 सत्यापन के लिए जमा"], [/^Detected near (.+)$/, "$1 के पास मिला"],
+  [/^Collect cash (₹[\d,.]+)$/, "$1 नकद लें"], [/^(.*) · valid till (.+)$/, "$1 · $2 तक मान्य"],
+  [/^Extra: (.+)$/, (m, a) => `अतिरिक्त: ${a}`], [/^(.+) × ?(\d+)$/, (m, a, q) => `${HI[a] || a} ×${q}`],
+  [/^(.+) x(\d+)$/, (m, a, q) => `${HI[a] || a} x${q}`],
 ];
 
 const translate = (s) => {
@@ -114,7 +118,11 @@ const walk = (root) => {
   while (n) {
     if (n.nodeType === 3) {
       const v = translate(n.nodeValue);
-      if (v !== null && v !== n.nodeValue) { done.set(n, [n.nodeValue, v]); n.nodeValue = v; }
+      if (v !== null && v !== n.nodeValue) {
+        if (done.size > 3000) done.forEach((_, node) => { if (!node.isConnected) done.delete(node); });
+        done.set(n, [n.nodeValue, v]);
+        n.nodeValue = v;
+      }
     } else if (n.placeholder) {
       const v = translate(n.placeholder);
       if (v !== null) { ph.set(n, n.placeholder); n.placeholder = v; }
@@ -129,10 +137,10 @@ export const useHindi = (lang) => {
     document.documentElement.lang = "hi";
     walk(document.body);
     const mo = new MutationObserver((ms) => ms.forEach((m) => {
-      if (m.type === "characterData") walk(m.target);
+      if (m.type === "characterData" || m.type === "attributes") walk(m.target);
       else m.addedNodes.forEach((x) => walk(x));
     }));
-    mo.observe(document.body, { subtree: true, childList: true, characterData: true });
+    mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["placeholder"] });
     return () => {
       mo.disconnect();
       done.forEach(([orig, tr], node) => { if (node.nodeValue === tr) node.nodeValue = orig; });

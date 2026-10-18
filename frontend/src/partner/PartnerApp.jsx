@@ -85,7 +85,7 @@ export default function PartnerApp() {
           <nav className="grid grid-cols-4 border-t-2 border-slate-200 bg-white pb-2 pt-1.5">
             {NAV.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.end} data-testid={`partner-nav-${n.label.split(" ")[0].toLowerCase()}`}
-                className={({ isActive }) => `flex flex-col items-center gap-0.5 py-1.5 text-[11px] font-bold ${isActive ? "text-[#0F172A]" : "text-slate-400"}`}>
+                className={({ isActive }) => `flex flex-col items-center gap-0.5 px-0.5 py-1.5 text-center text-[11px] font-bold leading-tight ${isActive ? "text-[#0F172A]" : "text-slate-400"}`}>
                 <n.icon className="h-6 w-6" />{n.label}
               </NavLink>
             ))}
