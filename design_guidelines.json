@@ -1,0 +1,136 @@
+{
+  "project_name": "Home Service Application Ecosystem",
+  "app_architecture": {
+    "structure": "Hybrid Fullstack - 3 integrated modules with unified mock state and Leaflet map support",
+    "modules": [
+      {
+        "name": "Portal / Landing Switcher",
+        "description": "Unified entry point with live preview toggles between Customer Mobile App, Partner Mobile App, and Admin Desktop Console",
+        "viewport": "Responsive desktop wrapper with device frame simulators"
+      },
+      {
+        "name": "Customer App",
+        "viewport": "Centered mobile-style web viewport (390px-430px container on desktop)",
+        "theme": "Light, modern, approachable premium utility",
+        "key_features": [
+          "OTP Login & Profile",
+          "GPS Location & Audio Landmark Notes",
+          "Category Grid & Banner Carousel",
+          "Multi-Service Cart & Quantity +/-",
+          "Instant vs Scheduled Slot Picker",
+          "Sticky Bottom Checkout Bar",
+          "Live Tracking with 4-Step Stepper & Half-Screen Map",
+          "Spare Parts Approval Modal",
+          "OTP Verification (Start 4-digit / End 4-digit)",
+          "UPI/Card/Wallet/COD Payment Gateways",
+          "GST Invoice Generator & Rating/Tip Modal"
+        ]
+      },
+      {
+        "name": "Partner App",
+        "viewport": "Centered mobile-style web viewport with high contrast outdoor theme",
+        "theme": "High-contrast outdoor visibility (#FFFFFF background, #F4F5F7 cards, high readability #0F172A typography)",
+        "key_features": [
+          "1-Handed Bottom Action Navigation",
+          "KYC Verification Upload (Aadhaar, PAN, DL, Police)",
+          "Shift Scheduler & Online/Offline Toggle Switch",
+          "COD Limit Guard (₹3000 auto-pause)",
+          "15-second Incoming Job Modal with Earnings & Countdown",
+          "4-Step Active Job Stepper (Arrived -> OTP -> Parts -> Complete)",
+          "Earnings Bar Chart & Instant Withdrawal",
+          "Floating SOS Emergency Trigger Button"
+        ]
+      },
+      {
+        "name": "Admin Panel",
+        "viewport": "Full-screen desktop dashboard",
+        "theme": "Dark Sidebar (#0F172A) with Light Slate Content Canvas (#F8FAFC)",
+        "key_features": [
+          "240px Fixed Sidebar & Top Header with Global Search",
+          "4 Real-time KPI Cards (Bookings, Active Jobs, Revenue, Partners)",
+          "Recharts Revenue & Booking Trends + Category Donut Chart",
+          "Geofencing Map Polygon Canvas + Pincode CSV Upload",
+          "Dynamic City Launch Modal",
+          "Dynamic Surge Rules & Multiplier Engine",
+          "Coupon Management System (e.g. FIRST50)",
+          "KYC Approval Queue & Partner Commission Engine (15-20%)"
+        ]
+      }
+    ]
+  },
+  "colors": {
+    "primary": "#1E3A8A",
+    "primary_hover": "#1D4ED8",
+    "secondary_accent": "#F59E0B",
+    "secondary_hover": "#D97706",
+    "success": "#22C55E",
+    "warning": "#EAB308",
+    "danger": "#EF4444",
+    "background_light": "#FFFFFF",
+    "background_canvas": "#F8FAFC",
+    "partner_surface": "#F4F5F7",
+    "admin_sidebar": "#0F172A",
+    "admin_sidebar_hover": "#1E293B",
+    "border_subtle": "#E2E8F0",
+    "text_dark": "#0F172A",
+    "text_muted": "#64748B",
+    "text_light": "#94A3B8"
+  },
+  "typography": {
+    "font_family_heading": "Barlow, Outfit, sans-serif",
+    "font_family_body": "Inter, system-ui, sans-serif",
+    "font_family_mono": "Source Code Pro, monospace",
+    "hero_heading": "text-3xl sm:text-4xl font-extrabold tracking-tight",
+    "section_heading": "text-xl sm:text-2xl font-bold tracking-tight",
+    "card_title": "text-base font-semibold text-slate-900",
+    "body_text": "text-sm font-normal text-slate-600 leading-relaxed",
+    "caption_text": "text-xs font-medium text-slate-500",
+    "badge_text": "text-xs font-semibold tracking-wide uppercase"
+  },
+  "layout_and_spacing": {
+    "desktop_admin_sidebar_width": "240px",
+    "mobile_frame_width": "412px",
+    "mobile_frame_max_height": "860px",
+    "container_padding_mobile": "p-4 sm:p-5",
+    "container_padding_desktop": "p-6 lg:p-8",
+    "card_border_radius": "rounded-2xl",
+    "button_border_radius": "rounded-xl",
+    "glassmorphism_class": "backdrop-blur-md bg-white/85 border border-slate-200/80 shadow-sm"
+  },
+  "image_urls": {
+    "hero_services": [
+      {
+        "url": "https://images.unsplash.com/photo-1621905251918-48416bd8575a?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "category": "ac_repair",
+        "alt": "Air conditioner maintenance technician"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1660330589693-99889d60181e?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "category": "electrician",
+        "alt": "Certified electrician fixing fuse panel"
+      },
+      {
+        "url": "https://images.pexels.com/photos/5691589/pexels-photo-5691589.jpeg?auto=compress&cs=tinysrgb&q=85",
+        "category": "plumbing_hardware",
+        "alt": "Plumbing and socket installation"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1660330590022-9f4ff56b63f6?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "category": "deep_cleaning",
+        "alt": "Professional home deep cleaning service"
+      }
+    ],
+    "partner_avatars": [
+      "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?crop=entropy&cs=srgb&fm=jpg&w=200&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=srgb&fm=jpg&w=200&q=80"
+    ]
+  },
+  "general_ui_ux_guidelines": [
+    "Every interactive element MUST have explicit data-testid attribute in kebab-case (e.g. data-testid='customer-book-now-btn').",
+    "No full transparent dropdowns or fixed headers. Always use blur backdrop or solid color with 1px border.",
+    "Mobile views (Customer & Partner) must render within a sleek frame container on desktop screens to allow testing without actual mobile hardware.",
+    "Use Sonner for pop-up toast alerts (booking confirmation, OTP sent, job accepted, SOS triggered).",
+    "Include real-time countdown timer (15s) in Partner App for incoming job offer modals.",
+    "Support dark fixed sidebar (#0F172A) for Admin and bright outdoor light mode (#FFFFFF/#F4F5F7) for Partner App."
+  ]
+}
