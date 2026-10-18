@@ -116,7 +116,15 @@ export default function ACities() {
       load();
     } catch (e) { toast.error(errMsg(e)); }
   };
-  const del = async (c) => { if (window.confirm(`Delete ${c.city_name}?`)) { await aapi.delete(`/admin/cities/${c.id}`); setSelId(null); load(); } };
+  const del = async (c) => {
+    if (!window.confirm(`Delete ${c.city_name}?`)) return;
+    await aapi.delete(`/admin/cities/${c.id}`);
+    toast.success(`${c.city_name} deleted`);
+    const { data } = await aapi.get("/admin/cities");
+    setCities(data);
+    setSelId(data[0]?.id || null);
+    setDraft(data[0] ? { ...data[0] } : null);
+  };
   const jsonView = draft && { city_name: draft.city_name, state: draft.state, is_active: draft.is_active, pincodes: draft.pincodes, surge_pricing: draft.surge_pricing, assigned_services: draft.assigned_services };
   return (
     <div className="grid grid-cols-[300px_1fr] gap-5">

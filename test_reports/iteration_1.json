@@ -1,0 +1,61 @@
+{
+  "summary": "First full-stack test of the HomeServe ecosystem (Customer, Partner, Admin on one API/DB). Backend: 44 pytest tests across 2 files (existing test_homeserve_api.py with 33 tests plus a new test_homeserve_extra.py with 11) all pass when run serially (-n0). Covered: auth, role guards (403), catalog, coupons (FIRST50/SAVE100/ACFEST), surge, GST, the full booking lifecycle with extras, cancel fees 0/49/99, wallet, decline counter + the ₹50 penalty on every 3rd decline, settlements, payouts, KYC, SOS and commission bounds. Frontend: Playwright ran the END-TO-END cross-app flow end to end with no blockers. Customer books with UPI and SAVE100 -> partner 9000000001 goes online -> incoming modal (15s countdown, distance, earning) -> Accept -> Start Navigation / Arrived -> customer sees ETA, partner card and start OTP -> wrong OTP is rejected, correct OTP starts the job -> extra part requested -> customer approval dialog -> Complete is disabled while the extra is pending -> approve -> complete with end OTP -> invoice GST/2026/10006 -> 4★ rating + tip -> customer GST invoice -> Re-book goes to checkout. Also verified in the UI: portal links, OTP login, new-number onboarding (/app/profile?onboard=1), location sheet, category grid, trending, book-again, services, service detail, checkout, profile, address add/delete, wallet top-up, chatbot + ticket, chat, masked call, customer cancel. Admin: KPIs, charts, fraud alerts, search, notifications, live bookings, re-assign dialog, cities, surge rules, coupons, KYC, partners, SOS resolve, payout paid, commission, settlements, invoices. Partner: skills, bank details, schedule, earnings, withdraw, SOS. Found 1 security bug (brute-force lockout can be bypassed), 1 medium UX bug (DL renewal blocked) and several minor issues.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/auth/admin/login", "issue": "Brute-force lockout can be bypassed. The lock identifier is request.client.host + email, and behind the k8s ingress client.host is the ingress pod IP, which rotates. 6 bad attempts were spread over 2 identifiers (count 4 and 2), so 429 was never returned. Fix: use the first IP in X-Forwarded-For, or key on email only.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "server.py CORS", "issue": "CORS_ORIGINS is '*' with allow_credentials=True, so Starlette echoes any Origin (seen: ACAO https://evil.example.com, ACAC true). Set explicit origins. Risk is lower because auth uses Bearer tokens in localStorage, not cookies; no httpOnly cookies are set (the auth playbook expects cookies)."},
+      {"endpoint": "POST /api/customer/bookings/{bid}/extras/{eid} + partner complete", "issue": "On prepaid (UPI/Card/Wallet) bookings an approved extra raises pricing.total (paid ₹1,360.30, invoice ₹1,655.30), but the ₹295 difference is never charged. Complete just sets amount_paid=total and payment_status=paid. Track a balance due or collect it."},
+      {"endpoint": "POST /api/partner/offers/{bid}/decline", "issue": "Increments consecutive_rejections even when the booking was not offered to this partner, because the update_one result is not checked. A partner can rack up penalties by calling it with any id."},
+      {"endpoint": "POST /api/admin/settlements/generate", "issue": "Labelled weekly (period = last 7 days) but includes ALL unsettled completed jobs of any age (e.g. 31 jobs for Ramesh). COD cash the partner already holds is not netted against net_payable."},
+      {"endpoint": "POST /api/customer/bookings/{bid}/cancel", "issue": "A coupon's used_count is not decremented when its booking is cancelled."},
+      {"endpoint": "GET /api/admin/bookings/{bid}/candidates", "issue": "Lists every partner, including offline, KYC-unapproved and nameless test partners, and each has an active Assign button. Consider filtering out or disabling non-approved ones."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Partner PProfile KYC docs", "issue": "Approved documents hide the upload form, so a partner whose approved DL expires in 20 days cannot renew it, even though the dashboard alert says 'Renew & re-upload'. Show the upload/renew form when an approved doc is within 30 days of expiry.", "selector": "[data-testid='kyc-dl-number'] (not rendered when status approved)", "priority": "MEDIUM"},
+      {"component": "Admin ACities", "issue": "After deleting the selected city, the right panel still shows the deleted city's geofence and Save button (stale selection), and no success toast appears.", "selector": "[data-testid='city-delete-btn']", "priority": "LOW"},
+      {"component": "Admin ABookings search", "issue": "No stale-request guard. Clicking a tab and then typing a search fires overlapping requests, and an older response can overwrite the filtered one: searching HS284119 showed 141 rows until the next 5s poll. Use AbortController or a request-id check.", "selector": "[data-testid='bookings-search-input']", "priority": "LOW"},
+      {"component": "Admin top bar", "issue": "The search results popover stays open when the notifications popover opens, so the two overlap.", "selector": "[data-testid='admin-search-results']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Customer home location sheet", "issues": ["The bottom sheet spans the full 1920px viewport instead of staying inside the 412px phone frame."]},
+      {"screen": "Admin Surge & Promos dialogs / Customer profile", "issues": ["Native HTML <select> for trigger type, city, discount type and language, and a native date input (mm/dd/yyyy) for coupon valid-till. Use shadcn Select and Calendar.", "Surge start/end hour inputs have no labels."]},
+      {"screen": "Customer tracking cancel", "issues": ["Uses window.confirm; use a shadcn AlertDialog that states the applicable fee."]},
+      {"screen": "Partner earnings", "issues": ["Negative amounts are formatted '₹-10,110.43'; should be '-₹10,110.43'."]},
+      {"screen": "Partner app", "issues": ["The SOS floating button overlaps list content near the bottom-right (e.g. the Schedule jobs list)."]},
+      {"screen": "Checkout", "issues": ["Copy reads '(1 categories mix allowed)' – fix the pluralisation."]},
+      {"screen": "Admin new city", "issues": ["A new city's map opens on a default center in central India rather than the city's location; the surge label shows a trailing 'Surge 1.1x ·' when no reason is given."]},
+      {"screen": "Customer wallet", "issues": ["The balance shows ₹0 while loading instead of a skeleton."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_homeserve_api.py", "/app/backend/tests/test_homeserve_extra.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix the admin login brute-force lockout identifier: use X-Forwarded-For first IP, or email only.",
+    "Restrict CORS_ORIGINS to explicit origins when allow_credentials=True.",
+    "Allow renewal/re-upload of approved DL/Police docs that are near expiry (PProfile).",
+    "Handle the payment delta for approved extras on prepaid bookings.",
+    "Validate in decline that the booking was actually offered to the partner before incrementing rejections.",
+    "Clear the selected city after delete in ACities and show a toast.",
+    "Replace native selects/date input with shadcn components; keep the location sheet inside the phone frame.",
+    "Test suite: test classes in test_homeserve_api.py share the demo customer's cart, so they race under the configured xdist -n 2 loadscope (seen 'Cart is empty' failures). Use separate customers per class, or mark them to share a worker. The suite also creates nameless partners each run without teardown; add cleanup."
+  ],
+  "critical_code_review_comments": [
+    "routes_auth.admin_login: the lockout key depends on the proxy IP; see the HIGH issue.",
+    "routes_partner.decline: unchecked update result lets a partner inflate rejections and penalties.",
+    "routes_partner.complete: amount_paid is overwritten with the new total without collecting the extras difference.",
+    "logic.surge_for_city takes the max multiplier rather than stacking. This matches the UI copy ('Highest active multiplier applies'); confirm that is intended versus 1.2x * 1.3x.",
+    "Bcrypt hash format $2b$ OK; seed_admin re-hashes the admin password if it changed (OK); tokens are Bearer in localStorage (no httpOnly cookie)."
+  ],
+  "updated_files": ["/app/backend/tests/test_homeserve_extra.py (new)", "/app/backend/tests/test_homeserve_api.py (test_wallet_insufficient: qty 5 -> 99 so it no longer depends on the demo wallet balance)"],
+  "success_rate": {"backend": "100% (44/44 when run serially; 1 test-fragility fix applied)", "frontend": "~95% (all requested flows work; minor UI/design issues)"},
+  "test_credentials": "From /app/memory/test_credentials.md: admin admin@homeserve.in / Admin@123; customer 9999999999 / OTP 1234; partner 9000000001 / OTP 1234.",
+  "seed_data_creation": "No new seed data. Test bookings were completed or cancelled. TEST_Kanpur city, TEST_Rule surge rule, TESTCPN coupon and the TEST address were deleted via the UI. Removed 5 nameless test partners left by the test suite. Side effects: the demo customer wallet is inflated (~₹22k+) by refunds and cashbacks; Ramesh's wallet changed (₹1 withdrawals plus one settlement released by the test) and is now ₹3,420.92; one test SOS was resolved; 2 payouts were marked paid; a new test customer (7xxxxxxxxx) and ticket TKT73751 remain; booking HS284119 is completed and rated 4★.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run the backend suite with `-n 0` (serial) to avoid cart races on the shared demo customer. Dispatch is pull-based: the partner must be online, and it picks the oldest pending booking in its skills first, so leftover pending AC/Elec/Clean/Plumb/Appliance bookings will be offered before new ones (the test helper wait_offer declines others). Partner 9000000001 was left OFFLINE with no live jobs. Seeded live jobs: usr_p2 assigned + en_route, usr_p3 in_progress, plus 1 pending painting booking HS539961 (seeded; one seeded pending salon booking was no longer pending at the end — not investigated). Screenshots must use the .jpg extension.",
+  "rca of the issue": "Brute-force lockout bypass: identifier = f'{request.client.host}:{email}'. In the preview/prod k8s setup, requests reach uvicorn from rotating ingress pod IPs (seen 10.227.1.198 and 10.227.1.200), so failed attempts split across multiple keys and never reach 5. Reproduce: POST /api/auth/admin/login with a wrong password 6 times -> all 401, and db.login_attempts has 2 docs. Fix: derive the client IP from X-Forwarded-For[0], or count per email."
+}

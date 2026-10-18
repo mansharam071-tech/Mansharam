@@ -198,7 +198,7 @@ class TestCancel:
 
     def test_wallet_insufficient(self, ctok):
         requests.delete(f"{API}/customer/cart", headers=H(ctok))
-        requests.post(f"{API}/customer/cart/items", headers=H(ctok), json={"service_id": "serv_paint_01", "qty": 5})
+        requests.post(f"{API}/customer/cart/items", headers=H(ctok), json={"service_id": "serv_paint_01", "qty": 99})  # large qty so total always exceeds accumulated demo wallet
         r = requests.post(f"{API}/customer/bookings", headers=H(ctok), json={"address_id": "addr_demo_home", "payment_method": "wallet"})
         assert r.status_code == 400
         requests.delete(f"{API}/customer/cart", headers=H(ctok))

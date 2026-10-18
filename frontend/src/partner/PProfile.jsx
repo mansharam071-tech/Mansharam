@@ -22,6 +22,8 @@ const ST = {
 const DocCard = ({ d, doc, onSaved }) => {
   const [f, setF] = useState({ number: doc?.number || "", expiry_date: doc?.expiry_date || "", file: null });
   const st = ST[doc?.status];
+  const expiring = doc?.expiry_date && (new Date(doc.expiry_date) - Date.now()) / 86400000 <= 30;
+  const editable = doc?.status !== "approved" || expiring;
   const submit = async () => {
     try {
       const { data } = await papi.post("/partner/documents", { type: d.type, ...f, expiry_date: f.expiry_date || null });
@@ -36,7 +38,8 @@ const DocCard = ({ d, doc, onSaved }) => {
         {st ? <span className={`flex items-center gap-1 text-xs font-bold ${st.cls}`}><st.icon className="h-4 w-4" />{st.label}</span> : <span className="text-xs font-bold text-slate-400">Not uploaded</span>}
       </div>
       {doc?.note && <p className="mt-1 text-xs text-[#EF4444]">Admin note: {doc.note}</p>}
-      {doc?.status !== "approved" && (
+      {expiring && <p data-testid={`kyc-${d.type}-expiring`} className="mt-1 text-xs font-semibold text-[#EAB308]">Expires {doc.expiry_date} — upload the renewed document</p>}
+      {editable && (
         <div className="mt-3 space-y-2">
           <Input data-testid={`kyc-${d.type}-number`} placeholder="Document number" value={f.number} onChange={(e) => setF({ ...f, number: e.target.value })} />
           {d.expiry && <Input data-testid={`kyc-${d.type}-expiry`} type="date" value={f.expiry_date} onChange={(e) => setF({ ...f, expiry_date: e.target.value })} />}

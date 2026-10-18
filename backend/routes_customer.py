@@ -287,6 +287,8 @@ async def cancel_booking(bid: str, user=Depends(customer)):
         bal = (await db.users.find_one({"id": user["id"]}, {"_id": 0, "wallet_balance": 1})).get("wallet_balance", 0)
         if bal > 0:
             await wallet_txn(user["id"], -min(bal, fee), f"Cancellation fee {b['booking_no']}", bid)
+    if b["pricing"].get("coupon_code"):
+        await db.coupons.update_one({"code": b["pricing"]["coupon_code"], "used_count": {"$gt": 0}}, {"$inc": {"used_count": -1}})
     await push_timeline(bid, "cancelled", {"status": "cancelled", "offered_to": None,
                                             "cancellation": {"fee": fee, "refund": refund, "by": "customer", "at": iso()},
                                             "payment_status": "refunded" if refund else b["payment_status"]})

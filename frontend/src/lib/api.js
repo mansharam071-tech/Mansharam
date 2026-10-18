@@ -42,7 +42,7 @@ export const errMsg = (e) => {
   return d.msg || String(d);
 };
 
-export const inr = (n) => "₹" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+export const inr = (n) => (Number(n) < 0 ? "-₹" : "₹") + Math.abs(Number(n || 0)).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 export const fmtDT = (s) =>
   s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
 

@@ -43,7 +43,7 @@ def check_phone_role(phone, role):
 @router.post("/admin/login")
 async def admin_login(body: AdminLogin, request: Request):
     email = body.email.strip().lower()
-    ident = f"{request.client.host if request.client else 'x'}:{email}"
+    ident = f"admin:{email}"
     att = await db.login_attempts.find_one({"identifier": ident})
     if att and att.get("count", 0) >= 5 and att.get("locked_until", "") > iso():
         raise HTTPException(429, "Too many failed attempts. Try again in 15 minutes.")

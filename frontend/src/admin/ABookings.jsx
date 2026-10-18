@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, UserCog, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -50,7 +50,11 @@ export default function ABookings() {
   const [q, setQ] = useState(sp.get("q") || "");
   const [d, setD] = useState({ bookings: [], counts: {} });
   const [sel, setSel] = useState(null);
-  const load = () => aapi.get("/admin/bookings", { params: { status, q: q || undefined } }).then((r) => setD(r.data)).catch(() => {});
+  const reqId = useRef(0);
+  const load = () => {
+    const id = ++reqId.current;
+    return aapi.get("/admin/bookings", { params: { status, q: q || undefined } }).then((r) => id === reqId.current && setD(r.data)).catch(() => {});
+  };
   usePoll(load, 5000, [status, q]);
   const total = Object.values(d.counts).reduce((a, b) => a + b, 0);
   const cancel = async (b) => {

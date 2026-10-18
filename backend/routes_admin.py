@@ -313,7 +313,8 @@ async def candidates(bid: str, user=Depends(admin)):
     b = await db.bookings.find_one({"id": bid}, NOID)
     if not b:
         raise HTTPException(404, "Booking not found")
-    ps = await db.users.find({"role": "partner", "kyc_status": "approved"}, {"_id": 0, "documents": 0}).to_list(500)
+    ps = await db.users.find({"role": "partner", "kyc_status": "approved", "name": {"$nin": ["", None]}},
+                             {"_id": 0, "documents": 0}).to_list(500)
     out = []
     for p in ps:
         out.append({"id": p["id"], "name": p["name"], "phone": p["phone"], "rating": p.get("rating"), "is_online": p.get("is_online"),
@@ -441,7 +442,7 @@ async def generate_settlements(user=Depends(admin)):
         seq += 1
         sid = new_id("stl_")
         s = {"id": sid, "partner_id": pid, "partner_name": (p or {}).get("name"), "bank": (p or {}).get("bank"),
-             "period_start": (today - timedelta(days=6)).isoformat(), "period_end": today.isoformat(), "jobs": len(items),
+             "period_start": min(ist_date(b["completed_at"]) for b in items), "period_end": today.isoformat(), "jobs": len(items),
              "gross": r2(sum(b["pricing"]["taxable"] for b in items)), "commission": commission,
              "commission_gst": r2(commission * 0.18), "tips": tips, "penalties": penalties, "earnings": earnings,
              "net_payable": r2(earnings + tips - penalties), "gst_invoice_no": f"COMM/{today.year}/{5000 + seq}",

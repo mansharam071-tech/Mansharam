@@ -122,8 +122,10 @@ async def accept(bid: str, user=Depends(partner)):
 
 @router.post("/offers/{bid}/decline")
 async def decline(bid: str, user=Depends(partner)):
-    await db.bookings.update_one({"id": bid, "offered_to": user["id"], "status": "pending"},
-                                 {"$set": {"offered_to": None, "offer_expires_at": None}, "$addToSet": {"rejected_by": user["id"]}})
+    res = await db.bookings.update_one({"id": bid, "offered_to": user["id"], "status": "pending"},
+                                       {"$set": {"offered_to": None, "offer_expires_at": None}, "$addToSet": {"rejected_by": user["id"]}})
+    if not res.modified_count:
+        raise HTTPException(400, "This job was not offered to you")
     await db.users.update_one({"id": user["id"]}, {"$inc": {"consecutive_rejections": 1}})
     p = await me(user["id"])
     if p["consecutive_rejections"] and p["consecutive_rejections"] % 3 == 0:
@@ -260,8 +262,12 @@ async def complete(bid: str, body: OtpIn, user=Depends(partner)):
     earning = r2(p["taxable"] - commission)
     seq = await db.counters.find_one_and_update({"id": "invoice"}, {"$inc": {"seq": 1}}, upsert=True, return_document=True)
     inv = f"GST/{now().year}/{10000 + (seq or {}).get('seq', 1)}"
+    balance = r2(p["total"] - (b.get("amount_paid") or 0)) if b["payment_method"] != "cod" else 0
+    if balance > 0 and b["payment_method"] == "wallet":
+        await wallet_txn(b["customer_id"], -balance, f"Approved extras for {b['booking_no']}", bid)
     upd = {"status": "completed", "completed_at": iso(), "pricing": p, "commission_rate": rate, "commission": commission,
-           "partner_earning": earning, "invoice_no": inv, "payment_status": "paid", "amount_paid": p["total"]}
+           "partner_earning": earning, "invoice_no": inv, "payment_status": "paid", "amount_paid": p["total"],
+           "balance_collected": max(0, balance)}
     await push_timeline(bid, "completed", upd)
     inc = {"pending_earnings": earning, "jobs_done": 1}
     if b["payment_method"] == "cod":

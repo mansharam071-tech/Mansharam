@@ -84,7 +84,7 @@ export default function CCheckout() {
       ) : (
         <div className="space-y-4 p-4 pb-6">
           <section className="rounded-2xl border bg-white p-4">
-            <h3 className="text-sm font-bold">Your services ({cart.lines.length} categories mix allowed)</h3>
+            <h3 className="text-sm font-bold">Your services · {cart.lines.length} item{cart.lines.length > 1 ? "s" : ""} (mix any categories)</h3>
             {cart.lines.map((l) => (
               <div key={l.service_id} className="mt-3 flex items-center gap-3" data-testid={`cart-line-${l.service_id}`}>
                 <img src={l.image} alt="" className="h-11 w-11 rounded-lg object-cover" />

@@ -60,7 +60,7 @@ const GlobalSearch = () => {
   }, [q]);
   const go = (path) => { setQ(""); nav(path); };
   return (
-    <div className="relative w-96">
+    <div className="relative w-96" onBlur={() => setTimeout(() => setR(null), 200)}>
       <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
       <Input data-testid="admin-global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search booking ID, phone, partner, city…" className="pl-9" />
       {r && (

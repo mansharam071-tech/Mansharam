@@ -38,7 +38,7 @@ const LocationSheet = ({ open, onOpenChange }) => {
   };
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-3xl">
+      <SheetContent side="bottom" className="rounded-t-3xl md:inset-x-auto md:left-[calc(50%-196px)] md:w-[392px]">
         <SheetHeader><SheetTitle>Choose service location</SheetTitle></SheetHeader>
         <Button data-testid="location-use-gps-btn" variant="outline" onClick={gps} className="mt-4 w-full justify-start border-[#1E3A8A] text-[#1E3A8A]">
           <LocateFixed className="mr-2 h-4 w-4" /> Use current location (GPS)
