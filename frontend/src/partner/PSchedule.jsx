@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { papi, errMsg, inr } from "@/lib/api";
+import { papi, errMsg, inr, fmtDate } from "@/lib/api";
+import { getLocale } from "@/lib/i18n";
 import { StatusBadge, Empty } from "@/components/common/Shared";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -23,10 +24,10 @@ const Calendar = () => {
     <div className="rounded-2xl bg-white p-4" data-testid="partner-calendar">
       <div className="flex items-center justify-between">
         <button data-testid="calendar-prev" onClick={() => shift(-1)}><ChevronLeft className="h-5 w-5" /></button>
-        <p className="font-bold">{new Date(m.y, m.mo).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</p>
+        <p className="font-bold">{new Date(m.y, m.mo).toLocaleDateString(getLocale(), { month: "long", year: "numeric" })}</p>
         <button data-testid="calendar-next" onClick={() => shift(1)}><ChevronRight className="h-5 w-5" /></button>
       </div>
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400">{DAYS.map((d) => <span key={d}>{d[0]}</span>)}</div>
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400">{DAYS.map((d, i) => <span key={d}>{new Date(2024, 0, 1 + i).toLocaleDateString(getLocale(), { weekday: "narrow" })}</span>)}</div>
       <div className="mt-1 grid grid-cols-7 gap-1">
         {Array.from({ length: first }).map((_, i) => <span key={`e${i}`} />)}
         {Array.from({ length: total }, (_, i) => i + 1).map((d) => {
@@ -93,7 +94,7 @@ export default function PSchedule() {
           <Link key={j.id} to={`/partner/job/${j.id}`} data-testid={`job-list-item-${j.id}`} className="block rounded-2xl bg-white p-3">
             <div className="flex justify-between"><span className="font-mono text-xs font-bold">{j.booking_no}</span><StatusBadge status={j.status} /></div>
             <p className="mt-1 text-sm font-bold">{j.lines.map((l) => l.name).join(", ")}</p>
-            <p className="text-xs text-slate-500">{j.slot_date} · {j.slot_time} · {inr(j.partner_earning ?? j.pricing.taxable * 0.82)}</p>
+            <p className="text-xs text-slate-500">{fmtDate(j.slot_date)} · {j.slot_time} · {inr(j.partner_earning ?? j.pricing.taxable * 0.82)}</p>
           </Link>
         ))}
       </div>

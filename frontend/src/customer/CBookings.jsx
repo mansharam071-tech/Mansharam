@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { capi, fmtDT, inr } from "@/lib/api";
+import { capi, fmtDT, fmtDate, inr } from "@/lib/api";
 import { Empty, StatusBadge } from "@/components/common/Shared";
 import { useCust } from "./CustomerApp";
 
@@ -27,7 +27,7 @@ export default function CBookings() {
                 <StatusBadge status={b.status} />
               </div>
               <p className="mt-2 text-sm font-semibold">{b.lines.map((l) => `${l.name} ×${l.qty}`).join(", ")}</p>
-              <p className="mt-1 text-xs text-slate-500">{b.slot_date} · {b.slot_time} · {inr(b.pricing.total)} · {b.payment_method.toUpperCase()}</p>
+              <p className="mt-1 text-xs text-slate-500">{fmtDate(b.slot_date)} · {b.slot_time} · {inr(b.pricing.total)} · {b.payment_method.toUpperCase()}</p>
               <p className="text-[11px] text-slate-400">Booked {fmtDT(b.created_at)}</p>
             </Link>
             {["completed", "cancelled"].includes(b.status) && (

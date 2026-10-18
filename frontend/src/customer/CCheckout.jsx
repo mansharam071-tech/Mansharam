@@ -4,6 +4,7 @@ import { ArrowLeft, Minus, Plus, Zap, CalendarDays, Smartphone, CreditCard, Wall
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { capi, errMsg, inr } from "@/lib/api";
+import { getLocale } from "@/lib/i18n";
 import { payWithRazorpay } from "@/lib/razorpay";
 import { Empty } from "@/components/common/Shared";
 import { useCust } from "./CustomerApp";
@@ -146,7 +147,7 @@ export default function CCheckout() {
                   {days().map((d) => (
                     <button key={ymd(d)} data-testid={`slot-date-${ymd(d)}`} onClick={() => setDate(ymd(d))}
                       className={`min-w-[58px] rounded-xl border px-2 py-2 text-center ${date === ymd(d) ? "border-[#1E3A8A] bg-[#1E3A8A] text-white" : ""}`}>
-                      <p className="text-[10px] uppercase">{d.toLocaleDateString("en-IN", { weekday: "short" })}</p>
+                      <p className="text-[10px] uppercase">{d.toLocaleDateString(getLocale(), { weekday: "short" })}</p>
                       <p className="text-base font-bold">{d.getDate()}</p>
                     </button>
                   ))}

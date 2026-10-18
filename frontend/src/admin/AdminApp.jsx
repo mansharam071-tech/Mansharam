@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, ListChecks, Map, Percent, ShieldCheck, Users, Wallet, Bell, Search, LogOut, Siren } from "lucide-react";
+import { LayoutDashboard, ListChecks, Map, Percent, ShieldCheck, Users, Wallet, Bell, Search, LogOut, Siren, Languages } from "lucide-react";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { aapi, errMsg, session, usePoll, fmtDT } from "@/lib/api";
+import { useHindi } from "@/lib/i18n";
 import ADashboard from "./ADashboard";
 import ABookings from "./ABookings";
 import ACities from "./ACities";
@@ -104,9 +105,19 @@ export default function AdminApp() {
   const [sess, setSess] = useState(session.get("admin"));
   const nav = useNavigate();
   const loc = useLocation();
+  useHindi(sess?.user?.language);
   if (loc.pathname === "/admin/login") return sess ? <Navigate to="/admin" replace /> : <Login onDone={(d) => { setSess(d); nav("/admin"); }} />;
   if (!sess) return <Navigate to="/admin/login" replace />;
   const logout = () => { session.clear("admin"); setSess(null); nav("/admin/login"); };
+  const isHi = sess.user?.language === "hi";
+  const toggleLang = async () => {
+    try {
+      const { data } = await aapi.put("/auth/me", { language: isHi ? "en" : "hi" });
+      const s = { ...session.get("admin"), user: data };
+      session.set("admin", s);
+      setSess(s);
+    } catch (e) { toast.error(errMsg(e)); }
+  };
   const title = NAV.find((n) => (n.end ? loc.pathname === n.to : loc.pathname.startsWith(n.to)))?.label;
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -137,6 +148,7 @@ export default function AdminApp() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem disabled>{sess.user?.email}</DropdownMenuItem>
+                <DropdownMenuItem data-testid="admin-language-toggle" onClick={toggleLang}><Languages className="mr-2 h-4 w-4" />{isHi ? "Switch to English" : "हिंदी में बदलें"}</DropdownMenuItem>
                 <DropdownMenuItem data-testid="admin-logout-btn" onClick={logout}><LogOut className="mr-2 h-4 w-4" /> Logout</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

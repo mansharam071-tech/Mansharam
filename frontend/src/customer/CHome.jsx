@@ -67,7 +67,7 @@ const Header = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return toast.error("Voice search isn't supported in this browser");
     const r = new SR();
-    r.lang = "en-IN";
+    r.lang = document.documentElement.lang === "hi" ? "hi-IN" : "en-IN";
     r.onresult = (e) => nav(`/app/services?q=${encodeURIComponent(e.results[0][0].transcript)}`);
     r.start();
     toast("Listening… say a service name");

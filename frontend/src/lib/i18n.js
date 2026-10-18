@@ -1,4 +1,8 @@
 import { useEffect } from "react";
+import { HI_ADMIN, ADMIN_PATTERNS } from "@/lib/i18n_admin";
+
+let current = "en";
+export const getLocale = () => (current === "hi" ? "hi-IN" : "en-IN");
 
 const HI = {
   Home: "होम", Bookings: "बुकिंग", Wallet: "वॉलेट", Help: "मदद", Profile: "प्रोफ़ाइल", Schedule: "शेड्यूल", Earnings: "कमाई", "KYC & Profile": "केवाईसी और प्रोफ़ाइल",
@@ -96,7 +100,9 @@ const PATTERNS = [
   [/^Collect cash (₹[\d,.]+)$/, "$1 नकद लें"], [/^(.*) · valid till (.+)$/, "$1 · $2 तक मान्य"],
   [/^Extra: (.+)$/, (m, a) => `अतिरिक्त: ${a}`], [/^(.+) × ?(\d+)$/, (m, a, q) => `${HI[a] || a} ×${q}`],
   [/^(.+) x(\d+)$/, (m, a, q) => `${HI[a] || a} x${q}`],
+  ...ADMIN_PATTERNS,
 ];
+Object.assign(HI, HI_ADMIN);
 
 const translate = (s) => {
   const k = s.trim();
@@ -132,6 +138,7 @@ const walk = (root) => {
 };
 
 export const useHindi = (lang) => {
+  current = lang || "en";
   useEffect(() => {
     if (lang !== "hi") return undefined;
     document.documentElement.lang = "hi";

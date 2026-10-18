@@ -4,7 +4,7 @@ import { ArrowLeft, Navigation, MessageCircle, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { papi, errMsg, inr, usePoll } from "@/lib/api";
+import { papi, errMsg, inr, usePoll, fmtDate } from "@/lib/api";
 import { Stepper, StatusBadge } from "@/components/common/Shared";
 import { TrackMap } from "@/components/common/Maps";
 import { ChatDialog, CallButton, InvoiceDialog } from "@/components/common/BookingTools";
@@ -52,7 +52,7 @@ export default function PJob() {
           <p className="text-sm text-slate-700">{b.address.line} ({b.address.pincode})</p>
           {b.address.landmark && <p className="text-xs text-slate-500">Landmark: {b.address.landmark}</p>}
           {b.address.audio_note && <audio data-testid="job-audio-note" controls src={b.address.audio_note} className="mt-2 h-9 w-full" />}
-          <p className="mt-2 text-xs font-semibold text-slate-600">{b.slot_date} · {b.slot_time} · {b.payment_method === "cod" ? `Collect cash ${inr(b.pricing.total)}` : "Prepaid online"}</p>
+          <p className="mt-2 text-xs font-semibold text-slate-600">{fmtDate(b.slot_date)} · {b.slot_time} · {b.payment_method === "cod" ? `Collect cash ${inr(b.pricing.total)}` : "Prepaid online"}</p>
           <div className="mt-3 grid grid-cols-3 gap-2">
             <a data-testid="job-navigate-link" href={gmaps} target="_blank" rel="noreferrer" className="flex h-11 items-center justify-center rounded-xl bg-[#1E3A8A] text-sm font-bold text-white"><Navigation className="mr-1 h-4 w-4" />Maps</a>
             <CallButton api={papi} bookingId={b.id} className="h-11 rounded-xl border-2 font-bold" />

@@ -4,7 +4,7 @@ import { MapPin, IndianRupee, AlertTriangle, BellRing, ShieldAlert, ChevronRight
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
-import { papi, errMsg, inr, usePoll, getGPS } from "@/lib/api";
+import { papi, errMsg, inr, usePoll, getGPS, fmtDate } from "@/lib/api";
 import { StatusBadge } from "@/components/common/Shared";
 
 const OfferModal = ({ offer, onClose }) => {
@@ -39,7 +39,7 @@ const OfferModal = ({ offer, onClose }) => {
           <div className="rounded-2xl bg-[#F4F5F7] p-3"><MapPin className="h-5 w-5 text-[#1E3A8A]" /><p data-testid="incoming-job-distance" className="mt-1 text-xl font-extrabold">{offer.distance_km} km</p><p className="text-xs text-slate-500">away · {offer.area.slice(0, 28)}</p></div>
           <div className="rounded-2xl bg-green-50 p-3"><IndianRupee className="h-5 w-5 text-[#22C55E]" /><p data-testid="incoming-job-earning" className="mt-1 text-xl font-extrabold">{inr(offer.est_earning)}</p><p className="text-xs text-slate-500">est. earning · {offer.payment_method.toUpperCase()}</p></div>
         </div>
-        <p className="mt-3 text-xs text-slate-500">{offer.mode === "instant" ? "Instant job · reach in 30-45 min" : `Scheduled · ${offer.slot_date} ${offer.slot_time}`}</p>
+        <p className="mt-3 text-xs text-slate-500">{offer.mode === "instant" ? "Instant job · reach in 30-45 min" : <>Scheduled · {fmtDate(offer.slot_date)} {offer.slot_time}</>}</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button data-testid="incoming-job-decline-btn" onClick={() => act("decline")} className="h-14 rounded-2xl border-2 border-[#EF4444] text-base font-bold text-[#EF4444]">Decline</button>
           <button data-testid="incoming-job-accept-btn" onClick={() => act("accept")} className="h-14 rounded-2xl bg-[#22C55E] text-base font-bold text-white">Accept</button>

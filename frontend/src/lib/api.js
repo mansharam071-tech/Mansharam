@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef } from "react";
+import { getLocale } from "@/lib/i18n";
 
 const BASE = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const LOGIN = { customer: "/app/login", partner: "/partner/login", admin: "/admin/login" };
@@ -44,7 +45,8 @@ export const errMsg = (e) => {
 
 export const inr = (n) => (Number(n) < 0 ? "-₹" : "₹") + Math.abs(Number(n || 0)).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 export const fmtDT = (s) =>
-  s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
+  s ? new Date(s).toLocaleString(getLocale(), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
+export const fmtDate = (s) => (s ? new Date(`${s}T00:00:00`).toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" }) : "-");
 
 export const STATUS = {
   payment_pending: { label: "Payment Pending", cls: "bg-orange-100 text-orange-800 border-orange-200" },
