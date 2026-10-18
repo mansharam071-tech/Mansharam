@@ -4,6 +4,7 @@ import { Home, CalendarCheck, Wallet, LifeBuoy, User } from "lucide-react";
 import { PhoneFrame } from "@/components/common/Shared";
 import { OtpLogin } from "@/components/common/OtpLogin";
 import { capi, session } from "@/lib/api";
+import { useHindi } from "@/lib/i18n";
 import CHome from "./CHome";
 import CServices from "./CServices";
 import CServiceDetail from "./CServiceDetail";
@@ -43,16 +44,14 @@ export default function CustomerApp() {
   const [address, setAddress] = useState(null);
   const nav = useNavigate();
   const loc = useLocation();
-
-  const refreshCart = useCallback(async () => {
+  useHindi(sess?.user?.language); = useCallback(async () => {
     if (!session.get("customer")) return;
     const { data } = await capi.get("/customer/cart");
     setCartCount(data.items.reduce((a, i) => a + i.qty, 0));
     if (!address && data.address) setAddress(data.address);
   }, [address]);
 
-  useEffect(() => {
-    if (sess) refreshCart().catch(() => {});
+  const refreshCart().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sess]);
 

@@ -265,9 +265,11 @@ async def complete(bid: str, body: OtpIn, user=Depends(partner)):
     balance = r2(p["total"] - (b.get("amount_paid") or 0)) if b["payment_method"] != "cod" else 0
     if balance > 0 and b["payment_method"] == "wallet":
         await wallet_txn(b["customer_id"], -balance, f"Approved extras for {b['booking_no']}", bid)
+    due_online = balance > 0 and b.get("payment_mode") == "razorpay"
     upd = {"status": "completed", "completed_at": iso(), "pricing": p, "commission_rate": rate, "commission": commission,
-           "partner_earning": earning, "invoice_no": inv, "payment_status": "paid", "amount_paid": p["total"],
-           "balance_collected": max(0, balance)}
+           "partner_earning": earning, "invoice_no": inv, "payment_status": "balance_due" if due_online else "paid",
+           "amount_paid": b.get("amount_paid", 0) if due_online else p["total"],
+           "balance_collected": 0 if due_online else max(0, balance)}
     await push_timeline(bid, "completed", upd)
     inc = {"pending_earnings": earning, "jobs_done": 1}
     if b["payment_method"] == "cod":

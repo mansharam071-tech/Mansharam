@@ -6,6 +6,8 @@ from core import db, NOID, iso, now, new_id, r2, haversine_km, require_role, get
 from logic import (build_quote, city_for_pincode, enrich_booking, wallet_txn, push_timeline, assert_booking,
                    finalize, refresh_partner_rating, CANCEL_FEES, CANCELLATION_POLICY, GST_RATE)
 
+from routes_payments import create_order, enabled as payments_enabled
+
 router = APIRouter(prefix="/api", tags=["customer"])
 customer = require_role("customer")
 
@@ -238,6 +240,7 @@ async def create_booking(body: BookingIn, user=Depends(customer)):
     city = q["city"]
     bid = new_id("bk_")
     created = iso()
+    online = body.payment_method in ("upi", "card") and payments_enabled()
     b = {"id": bid, "booking_no": f"HS{random.randint(100000, 999999)}", "customer_id": user["id"], "partner_id": None,
          "lines": q["lines"], "category_ids": list({l["category_id"] for l in q["lines"]}),
          "address": {k: addr.get(k) for k in ("id", "label", "line", "pincode", "city", "location", "landmark", "audio_note")},
@@ -245,14 +248,19 @@ async def create_booking(body: BookingIn, user=Depends(customer)):
          "slot_date": body.slot_date if body.mode == "scheduled" else created[:10],
          "slot_time": body.slot_time if body.mode == "scheduled" else "ASAP (30-45 min)",
          "pricing": p, "surge_reasons": q["surge_reasons"], "payment_method": body.payment_method,
-         "payment_status": "pending" if body.payment_method == "cod" else "paid",
-         "amount_paid": 0 if body.payment_method == "cod" else p["total"], "status": "pending",
+         "payment_status": "awaiting_payment" if online else ("pending" if body.payment_method == "cod" else "paid"),
+         "amount_paid": 0 if online or body.payment_method == "cod" else p["total"],
+         "status": "payment_pending" if online else "pending",
+         "payment_mode": "razorpay" if online else ("demo" if body.payment_method in ("upi", "card") else body.payment_method),
          "start_otp": f"{random.randint(1000, 9999)}", "end_otp": f"{random.randint(1000, 9999)}", "extras": [],
-         "timeline": [{"status": "pending", "at": created}], "rating": None, "review": None, "tip": 0,
+         "timeline": [{"status": "payment_pending" if online else "pending", "at": created}], "rating": None, "review": None, "tip": 0,
          "commission_rate": None, "commission": None, "partner_earning": None, "invoice_no": None, "offered_to": None,
          "offer_expires_at": None, "rejected_by": [], "settlement_id": None, "created_at": created, "completed_at": None,
          "partner_origin": None, "en_route_at": None, "arrived_at": None}
     await db.bookings.insert_one(dict(b))
+    if online:
+        order = await create_order(user, p["total"], "booking", bid, b["booking_no"])
+        return {**await enrich_booking(b, "customer"), "razorpay": order}
     if body.payment_method == "wallet":
         await wallet_txn(user["id"], -p["total"], f"Payment for booking {b['booking_no']}", bid)
     if p.get("coupon_code"):
@@ -399,10 +407,21 @@ async def wallet(user=Depends(customer)):
     return {"balance": u.get("wallet_balance", 0), "transactions": txns}
 
 
+@router.post("/customer/bookings/{bid}/pay-balance")
+async def pay_balance(bid: str, user=Depends(customer)):
+    b = await assert_booking(bid, user, "customer_id")
+    due = r2(b["pricing"]["total"] - (b.get("amount_paid") or 0))
+    if b.get("payment_status") != "balance_due" or due <= 0:
+        raise HTTPException(400, "No balance due on this booking")
+    return {"razorpay": await create_order(user, due, "balance", bid, f"{b['booking_no']}-bal")}
+
+
 @router.post("/customer/wallet/topup")
 async def topup(amount: float, user=Depends(customer)):
     if not 1 <= amount <= 10000:
         raise HTTPException(400, "Amount must be between ₹1 and ₹10,000")
+    if payments_enabled():
+        return {"razorpay": await create_order(user, amount, "wallet", None, "wallet-topup")}
     await wallet_txn(user["id"], amount, "Wallet top-up (demo UPI)")
     return {"ok": True}
 
