@@ -29,6 +29,9 @@ Customer (books home services), Partner/technician (executes jobs), Ops admin (m
 - All modules and flows above working end-to-end (testing agent iteration_1: backend 44/44, frontend ~95%).
 - Post-test fixes: brute-force lockout keyed on email, decline validates offer, prepaid extras balance collected (wallet debit), coupon usage restored on cancel, settlement period from earliest job, candidates exclude nameless partners, expiring approved DL/Police can be re-uploaded, city delete clears selection, bookings search stale-response guard, location sheet inside phone frame, negative ₹ formatting.
 
+## Deployment readiness (2026-10-18)
+- Deployment health check: PASS. No blockers found (env-only config, supervisor ports 8001/3000, idempotent seed, build compiles). Razorpay stays on test/demo keys at the user's request.
+
 ## Mocked
 OTP fixed 1234; UPI/Card payments simulated; masked calling returns placeholder number; chatbot rule-based; seller GSTIN/address are placeholders.
 
