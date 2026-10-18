@@ -32,6 +32,10 @@ Customer (books home services), Partner/technician (executes jobs), Ops admin (m
 ## Deployment readiness (2026-10-18)
 - Deployment health check: PASS. No blockers found (env-only config, supervisor ports 8001/3000, idempotent seed, build compiles). Razorpay stays on test/demo keys at the user's request.
 
+## Code review fixes (2026-10-18)
+- Job start/end OTPs, booking numbers and ticket numbers now use Python `secrets` (routes_customer.py). Verified live: booking + ticket created correctly, test records removed.
+- Reviewed and left unchanged per user: undefined-variable and `is`-comparison findings were false positives; complexity refactors, type hints and ObjectId lint warnings (queries already use the {"_id": 0} projection) are deferred.
+
 ## Mocked
 OTP fixed 1234; UPI/Card payments simulated; masked calling returns placeholder number; chatbot rule-based; seller GSTIN/address are placeholders.
 

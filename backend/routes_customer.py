@@ -1,4 +1,5 @@
 import random
+import secrets
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -241,7 +242,7 @@ async def create_booking(body: BookingIn, user=Depends(customer)):
     bid = new_id("bk_")
     created = iso()
     online = body.payment_method in ("upi", "card") and payments_enabled()
-    b = {"id": bid, "booking_no": f"HS{random.randint(100000, 999999)}", "customer_id": user["id"], "partner_id": None,
+    b = {"id": bid, "booking_no": f"HS{100000 + secrets.randbelow(900000)}", "customer_id": user["id"], "partner_id": None,
          "lines": q["lines"], "category_ids": list({l["category_id"] for l in q["lines"]}),
          "address": {k: addr.get(k) for k in ("id", "label", "line", "pincode", "city", "location", "landmark", "audio_note")},
          "city_id": city["id"], "city_name": city["city_name"], "mode": body.mode,
@@ -252,7 +253,7 @@ async def create_booking(body: BookingIn, user=Depends(customer)):
          "amount_paid": 0 if online or body.payment_method == "cod" else p["total"],
          "status": "payment_pending" if online else "pending",
          "payment_mode": "razorpay" if online else ("demo" if body.payment_method in ("upi", "card") else body.payment_method),
-         "start_otp": f"{random.randint(1000, 9999)}", "end_otp": f"{random.randint(1000, 9999)}", "extras": [],
+         "start_otp": f"{1000 + secrets.randbelow(9000)}", "end_otp": f"{1000 + secrets.randbelow(9000)}", "extras": [],
          "timeline": [{"status": "payment_pending" if online else "pending", "at": created}], "rating": None, "review": None, "tip": 0,
          "commission_rate": None, "commission": None, "partner_earning": None, "invoice_no": None, "offered_to": None,
          "offer_expires_at": None, "rejected_by": [], "settlement_id": None, "created_at": created, "completed_at": None,
@@ -455,7 +456,7 @@ async def tickets(user=Depends(get_current_user)):
 
 @router.post("/support/tickets")
 async def create_ticket(body: TicketIn, user=Depends(get_current_user)):
-    t = {"id": new_id("tkt_"), "ticket_no": f"TKT{random.randint(10000, 99999)}", "user_id": user["id"], "user_role": user["role"],
+    t = {"id": new_id("tkt_"), "ticket_no": f"TKT{10000 + secrets.randbelow(90000)}", "user_id": user["id"], "user_role": user["role"],
          "user_name": user.get("name"), "subject": body.subject, "booking_id": body.booking_id, "status": "open",
          "messages": [{"from": user["role"], "text": body.message, "at": iso()}], "created_at": iso()}
     await db.tickets.insert_one(dict(t))
