@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/common/Shared";
 import { OtpLogin } from "@/components/common/OtpLogin";
 import { papi, session, getGPS, errMsg } from "@/lib/api";
+import { useHindi } from "@/lib/i18n";
 import PDashboard from "./PDashboard";
 import PJob from "./PJob";
 import PEarnings from "./PEarnings";
@@ -60,12 +61,13 @@ export default function PartnerApp() {
   const [sess, setSess] = useState(session.get("partner"));
   const nav = useNavigate();
   const loc = useLocation();
+  useHindi(sess?.user?.language);
   const logout = () => { session.clear("partner"); setSess(null); nav("/partner/login"); };
   if (!sess && loc.pathname !== "/partner/login") return <Navigate to="/partner/login" replace />;
   const inJob = loc.pathname.startsWith("/partner/job/");
   return (
     <PhoneFrame tone="partner" testid="partner-app-frame">
-      <Ctx.Provider value={{ user: sess?.user, logout }}>
+      <Ctx.Provider value={{ user: sess?.user, setSess, logout }}>
         <div className="relative flex-1 overflow-y-auto bg-[#F4F5F7] no-scrollbar">
           <Routes>
             <Route path="login" element={<OtpLogin role="partner" accent="#0F172A" title="Earn more. Work your way." subtitle="Partner app for verified HomeServe professionals."

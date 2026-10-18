@@ -3,7 +3,7 @@ import { Upload, CheckCircle2, Clock, XCircle, RotateCcw, LogOut } from "lucide-
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { papi, capi, errMsg, fileToDataUrl } from "@/lib/api";
+import { papi, capi, errMsg, fileToDataUrl, session } from "@/lib/api";
 import { usePartner } from "./PartnerApp";
 
 const DOCS = [
@@ -56,7 +56,7 @@ const DocCard = ({ d, doc, onSaved }) => {
 };
 
 export default function PProfile() {
-  const { logout } = usePartner();
+  const { logout, setSess } = usePartner();
   const [me, setMe] = useState(null);
   const [cats, setCats] = useState([]);
   const [svcs, setSvcs] = useState([]);
@@ -70,6 +70,15 @@ export default function PProfile() {
   const save = async (patch, msg) => {
     try { const { data } = await papi.put("/partner/profile", patch); setMe(data); toast.success(msg); } catch (e) { toast.error(errMsg(e)); }
   };
+  const setLang = async (language) => {
+    try {
+      const { data } = await papi.put("/auth/me", { language });
+      setMe(data);
+      const s = session.get("partner");
+      session.set("partner", { ...s, user: data });
+      setSess({ ...s, user: data });
+    } catch (e) { toast.error(errMsg(e)); }
+  };
   const toggle = (k, id) => setMe({ ...me, [k]: me[k]?.includes(id) ? me[k].filter((x) => x !== id) : [...(me[k] || []), id] });
   const bank = me.bank || {};
   return (
@@ -79,6 +88,10 @@ export default function PProfile() {
         <Input data-testid="partner-name-input" placeholder="Full name" value={me.name || ""} onChange={(e) => setMe({ ...me, name: e.target.value })} />
         <Button data-testid="partner-name-save" onClick={() => save({ name: me.name }, "Name saved")} className="mt-2 h-11 w-full bg-[#0F172A]">Save name</Button>
         <p className="mt-2 text-xs text-slate-500">KYC status: <b data-testid="partner-kyc-status" className="uppercase">{me.kyc_status.replace("_", " ")}</b></p>
+        <label className="mt-3 block text-xs font-semibold text-slate-600">Language</label>
+        <select data-testid="partner-language-select" value={me.language || "en"} onChange={(e) => setLang(e.target.value)} className="mt-1 h-11 w-full rounded-xl border-2 bg-white px-3">
+          <option value="en">English</option><option value="hi">हिंदी (Hindi)</option>
+        </select>
       </div>
       <p className="font-heading text-lg font-bold">Document verification</p>
       {DOCS.map((d) => <DocCard key={d.type} d={d} doc={me.documents?.[d.type]} onSaved={load} />)}

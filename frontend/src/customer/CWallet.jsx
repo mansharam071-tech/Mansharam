@@ -3,17 +3,21 @@ import { ArrowDownLeft, ArrowUpRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { capi, errMsg, fmtDT, inr } from "@/lib/api";
 import { Empty } from "@/components/common/Shared";
+import { payWithRazorpay } from "@/lib/razorpay";
+import { useCust } from "./CustomerApp";
 
 export default function CWallet() {
+  const { user } = useCust();
   const [w, setW] = useState({ balance: 0, transactions: [] });
   const load = () => capi.get("/customer/wallet").then((r) => setW(r.data));
   useEffect(() => { load(); }, []);
   const topup = async (amount) => {
     try {
-      await capi.post("/customer/wallet/topup", null, { params: { amount } });
-      toast.success(`${inr(amount)} added (demo UPI)`);
+      const { data } = await capi.post("/customer/wallet/topup", null, { params: { amount } });
+      if (data.razorpay) await payWithRazorpay(data.razorpay, { user, description: "Wallet top-up" });
+      toast.success(`${inr(amount)} added${data.razorpay ? "" : " (demo UPI)"}`);
       load();
-    } catch (e) { toast.error(errMsg(e)); }
+    } catch (e) { toast.error(e.response ? errMsg(e) : e.message); }
   };
   return (
     <div className="pb-24">

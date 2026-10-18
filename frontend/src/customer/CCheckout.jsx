@@ -4,6 +4,7 @@ import { ArrowLeft, Minus, Plus, Zap, CalendarDays, Smartphone, CreditCard, Wall
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { capi, errMsg, inr } from "@/lib/api";
+import { payWithRazorpay } from "@/lib/razorpay";
 import { Empty } from "@/components/common/Shared";
 import { useCust } from "./CustomerApp";
 
@@ -20,7 +21,8 @@ const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0
 const Line = ({ k, v, cls = "" }) => <div className={`flex justify-between text-sm ${cls}`}><span>{k}</span><span>{v}</span></div>;
 
 export default function CCheckout() {
-  const { refreshCart, address, setAddress } = useCust();
+  const { refreshCart, address, setAddress, user } = useCust();
+  const [rzp, setRzp] = useState(false);
   const [cart, setCart] = useState(null);
   const [addrs, setAddrs] = useState([]);
   const [mode, setMode] = useState("instant");
@@ -47,6 +49,7 @@ export default function CCheckout() {
     capi.get("/customer/coupons").then((r) => setCoupons(r.data));
     capi.get("/customer/wallet").then((r) => setWallet(r.data.balance));
     capi.get("/policy/cancellation").then((r) => setPolicy(r.data.rules));
+    capi.get("/payments/config").then((r) => setRzp(r.data.enabled));
   }, []);
 
   const setQty = async (l, qty) => {
@@ -56,11 +59,21 @@ export default function CCheckout() {
   const place = async () => {
     setBusy(true);
     try {
-      if (pay === "upi" || pay === "card") toast.message("Processing demo payment…");
+      if ((pay === "upi" || pay === "card") && !rzp) toast.message("Processing demo payment…");
       const { data } = await capi.post("/customer/bookings", {
         address_id: (address || cart.address)?.id, mode, slot_date: mode === "scheduled" ? date : null,
         slot_time: mode === "scheduled" ? slot : null, payment_method: pay, coupon_code: applied || null,
       });
+      if (data.razorpay) {
+        try {
+          await payWithRazorpay(data.razorpay, { user, method: pay, description: `Booking ${data.booking_no}` });
+          toast.success("Payment successful");
+        } catch (err) {
+          toast.error(err.message);
+          setBusy(false);
+          return;
+        }
+      }
       await refreshCart();
       toast.success(`Booking ${data.booking_no} confirmed!`);
       nav(`/app/booking/${data.id}`);
@@ -173,6 +186,11 @@ export default function CCheckout() {
                 </button>
               ))}
             </div>
+            {(pay === "upi" || pay === "card") && (
+              <p data-testid="checkout-payment-mode-note" className={`mt-2 text-xs font-semibold ${rzp ? "text-[#22C55E]" : "text-[#EAB308]"}`}>
+                {rzp ? "Secure payment via Razorpay" : "Demo payment mode (Razorpay keys not configured)"}
+              </p>
+            )}
           </section>
 
           <section className="space-y-1.5 rounded-2xl border bg-white p-4" data-testid="checkout-price-breakdown">

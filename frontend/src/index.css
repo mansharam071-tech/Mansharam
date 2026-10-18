@@ -1,18 +1,18 @@
-@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
     margin: 0;
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "Inter", "Noto Sans Devanagari", system-ui, sans-serif;
     font-size: 14px;
     font-weight: 500;
     color: #0f172a;
     -webkit-font-smoothing: antialiased;
 }
 input, textarea, select { font-size: 15px; }
-.font-heading { font-family: "Barlow", "Inter", sans-serif; }
+.font-heading { font-family: "Barlow", "Noto Sans Devanagari", "Inter", sans-serif; }
 ::selection { background: #f59e0b; color: #0f172a; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }

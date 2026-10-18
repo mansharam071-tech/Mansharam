@@ -40,8 +40,8 @@ async def create_order(user, amount, purpose, booking_id=None, receipt=""):
         o = await asyncio.to_thread(client().order.create, {
             "amount": paise, "currency": "INR", "receipt": (receipt or purpose)[:40], "payment_capture": 1,
             "notes": {"purpose": purpose, "booking_id": booking_id or "", "user_id": user["id"]}})
-    except razorpay.errors.BadRequestError as e:
-        raise HTTPException(400, f"Razorpay error: {e}")
+    except Exception as e:
+        raise HTTPException(502, f"Razorpay error: {e}")
     await db.payments.insert_one({"id": new_id("pay_"), "order_id": o["id"], "purpose": purpose, "booking_id": booking_id,
                                   "user_id": user["id"], "amount": r2(amount), "status": "created", "created_at": iso()})
     return {"order_id": o["id"], "amount": o["amount"], "currency": "INR", "key_id": os.environ["RAZORPAY_KEY_ID"],

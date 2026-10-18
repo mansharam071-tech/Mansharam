@@ -44,14 +44,17 @@ export default function CustomerApp() {
   const [address, setAddress] = useState(null);
   const nav = useNavigate();
   const loc = useLocation();
-  useHindi(sess?.user?.language); = useCallback(async () => {
+  useHindi(sess?.user?.language);
+
+  const refreshCart = useCallback(async () => {
     if (!session.get("customer")) return;
     const { data } = await capi.get("/customer/cart");
     setCartCount(data.items.reduce((a, i) => a + i.qty, 0));
     if (!address && data.address) setAddress(data.address);
   }, [address]);
 
-  const refreshCart().catch(() => {});
+  useEffect(() => {
+    if (sess) refreshCart().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sess]);
 

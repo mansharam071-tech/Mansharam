@@ -47,6 +47,7 @@ export const fmtDT = (s) =>
   s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
 
 export const STATUS = {
+  payment_pending: { label: "Payment Pending", cls: "bg-orange-100 text-orange-800 border-orange-200" },
   pending: { label: "Pending", cls: "bg-yellow-100 text-yellow-800 border-yellow-200" },
   assigned: { label: "Assigned", cls: "bg-blue-100 text-blue-800 border-blue-200" },
   en_route: { label: "En Route", cls: "bg-indigo-100 text-indigo-800 border-indigo-200" },

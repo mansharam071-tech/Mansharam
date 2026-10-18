@@ -10,6 +10,7 @@ import { Stepper, StatusBadge } from "@/components/common/Shared";
 import { TrackMap } from "@/components/common/Maps";
 import { ChatDialog, CallButton, InvoiceDialog } from "@/components/common/BookingTools";
 import { useCust } from "./CustomerApp";
+import { payWithRazorpay } from "@/lib/razorpay";
 
 const stepOf = (b) => ({ pending: 0, assigned: 1, en_route: b.arrived_at ? 2 : 1, in_progress: 3, completed: 4 }[b.status] ?? 0);
 
@@ -49,7 +50,7 @@ const RateCard = ({ b, onDone }) => {
 export default function CTracking() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { refreshCart } = useCust();
+  const { refreshCart, user } = useCust();
   const [b, setB] = useState(null);
   const [chat, setChat] = useState(false);
   const [invoice, setInvoice] = useState(false);
@@ -73,6 +74,14 @@ export default function CTracking() {
       toast.success(`Cancelled · fee ${inr(data.fee)} · refund ${inr(data.refund)} to wallet`);
       load();
     } catch (e) { toast.error(errMsg(e)); }
+  };
+  const payBalance = async () => {
+    try {
+      const { data } = await capi.post(`/customer/bookings/${b.id}/pay-balance`);
+      await payWithRazorpay(data.razorpay, { user, method: b.payment_method, description: `Balance ${b.booking_no}` });
+      toast.success("Payment successful");
+      load();
+    } catch (e) { toast.error(e.response ? errMsg(e) : e.message); }
   };
   const rebook = async () => {
     await capi.post(`/customer/bookings/${b.id}/rebook`);
@@ -145,6 +154,14 @@ export default function CTracking() {
           <div className="flex justify-between text-slate-500"><span>GST 18%</span><span>{inr(p.gst)}</span></div>
           <div className="flex justify-between border-t pt-1.5 font-bold"><span>Total ({b.payment_method.toUpperCase()} · {b.payment_status})</span><span data-testid="tracking-total">{inr(p.total)}</span></div>
         </div>
+        {b.payment_status === "balance_due" && (
+          <div className="flex items-center justify-between rounded-2xl border-2 border-[#F59E0B] bg-amber-50 p-3" data-testid="tracking-balance-due">
+            <span className="text-sm font-semibold">Balance due for approved extras</span>
+            <Button data-testid="tracking-pay-balance-btn" onClick={payBalance} className="bg-[#F59E0B] font-bold text-slate-900 hover:bg-[#D97706]">
+              Pay balance {inr(p.total - (b.amount_paid || 0))}
+            </Button>
+          </div>
+        )}
         {b.status === "completed" && (
           <div className="grid grid-cols-2 gap-2">
             <Button data-testid="tracking-invoice-btn" variant="outline" onClick={() => setInvoice(true)}><FileText className="mr-1.5 h-4 w-4" /> GST Invoice</Button>
